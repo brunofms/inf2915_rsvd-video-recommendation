@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/python
+
+# Bruno de F. Melo e Souza
+# Usage: cat videoplayer_AAAAMMDDHH.log | python userMapper.py
  
 from operator import itemgetter
 import sys
@@ -26,16 +29,8 @@ for user, viewed in user2count.items():
 	try:
 		viewed2count[viewed] = viewed2count.get(viewed, 0) + 1
 	except ValueError:
-		# count was not a number, so silently
 		# ignore/discard this line
 		pass
- 
-# sort the words lexigraphically;
-#
-# this step is NOT required, we just do it so that our
-# final output will look more like the official Hadoop
-# word count examples
-#sorted_user2count = sorted(user2count.items(), key=itemgetter(0))
  
 # write the results to STDOUT (standard output)
 for viewed, count in viewed2count.items():

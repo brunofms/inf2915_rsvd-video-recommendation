@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # Bruno de F. Melo e Souza
-# Usage: cat videoplayer_AAAAMMDDHH.log | python parser.py > features.xls
+# Usage: cat videoplayer_AAAAMMDDHH.log | python userMapper.py
 
 import sys
 import hashlib
