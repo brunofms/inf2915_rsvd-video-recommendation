@@ -87,26 +87,12 @@ def parseLog (input) :
 	else:
 		output['user_agent'] = after_ref_url[:e_quote_user_agent]
      
-	#parse cookie
-	#after_user_ag = after_ref_url[e_quote_user_agent+1:]
-	#s_quote_cookie = string.index(after_user_ag,"\"")
-	#after_user_ag = after_user_ag[s_quote_cookie+1:]
-	#e_quote_cookie = string.index(after_user_ag, "\"")
-	#if e_quote_cookie - s_quote_cookie==1:
-	#	output['cookie'] = ""
-	#else:
-	#	output['cookie'] = after_user_ag[:e_quote_cookie]
-	
 	return output
 
 # start script
-#print "IP\tAccess Date\tRequest URI\tDownloaded Bytes\tReferer URI\tUser-agent\tCookie"
-#print "User\tMedia"
 for line in sys.stdin:
 	try:
 		result = parseLog(line)
-		#for x in result.keys():
-		#print result['ip_address'], "\t", result['date_time'], "\t", result['request'], "\t", result['return_byte'], "\t", result['refering_url'], "\t", result['user_agent'], "\t", result['cookie']
 		print hashlib.md5(result['ip_address'] + result['user_agent']).hexdigest(), "\t", result['midia_id']
 	except:
 		pass

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # Bruno de F. Melo e Souza
-# Usage: cat videoplayer_AAAAMMDDHH.log | python userMapper.py
+# Usage: cat videoplayer_AAAAMMDDHH.log | python userMapper.py | python userReducer.py
  
 from operator import itemgetter
 import sys
@@ -13,17 +13,17 @@ viewed2count = {}
 # input comes from STDIN
 for line in sys.stdin:
     # remove leading and trailing whitespace
-    line = line.strip()
- 
-    # parse the input we got from userMapper.py
-    user, midia_id = line.split('\t', 1)
-    # convert count (currently a string) to int
-    try:
-        user2count[user] = user2count.get(user, 0) + 1
-    except ValueError:
+	line = line.strip()
+
+	# parse the input we got from userMapper.py
+	user, midia_id = line.split('\t', 1)
+
+	try:
+		user2count[user] = user2count.get(user, 0) + 1
+	except ValueError:
         # count was not a number, so silently
         # ignore/discard this line
-        pass
+		pass
 
 for user, viewed in user2count.items():
 	try:
