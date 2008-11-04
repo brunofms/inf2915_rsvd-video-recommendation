@@ -50,8 +50,10 @@ def sim_distance(prefs,person1,person2):
 	# Add up the squares of all the differences
 	sum_of_squares=sum([pow(prefs[person1][item]-prefs[person2][item],2)
 						for item in prefs[person1] if item in prefs[person2]])
-
-	return 1/(1+sum_of_squares)
+	distance = 1/(1+sum_of_squares)
+	#if distance < 1 and distance > 0: 
+		#print distance
+	return distance
 
 # Returns the best matches for person from the prefs dictionary.
 # Number of results and similarity function are optional params.
