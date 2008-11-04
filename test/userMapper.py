@@ -51,7 +51,7 @@ def parseLog (input) :
 	output['protocol'] = protocol
 	
 	#parse midia_id
-	patt = re.compile('midiaId=([0-9]{1,6})')
+	patt = re.compile('_([0-9]{1,6})_')
 	mobj = patt.search(request)
 	output['midia_id'] = mobj.group(1)
 
@@ -92,7 +92,10 @@ def parseLog (input) :
 # start script
 for line in sys.stdin:
 	try:
+		print line
+		
 		result = parseLog(line)
 		print hashlib.md5(result['ip_address'] + result['user_agent']).hexdigest(), "\t", result['midia_id']
 	except:
+		print "Passing..."
 		pass
