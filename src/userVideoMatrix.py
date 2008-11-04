@@ -2,7 +2,7 @@
 
 # Bruno de F. Melo e Souza
 # Implement a dictionary of viewers and their ratings for a set of videos
-# Usage: cat videoplayer_AAAAMMDDHH.log | grep midiaId | python userMapper.py | python userVideoMatrix.py
+# Usage: cat videoplayer_AAAAMMDDHH.log | python userMapper.py | python userVideoMatrix.py
 
 from collections import defaultdict 
 import sys
