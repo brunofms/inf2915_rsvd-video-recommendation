@@ -6,3 +6,46 @@
     run: sudo python setup.py install
 2 - Documentation at http://www.scipy.org/Documentation
 3 - mkdir -p data/logs_flashvideo
+
+
+
+##########################################
+# Example of how to use SVD methods ######
+##########################################
+
+Create a file with the following content:
+
+from similarity import *
+
+users = { 1 : "Ben", 2 : "Tom", 3 : "John", 4 : "Fred" }
+a = array([[5,5,0,5],
+           [5,0,3,4],
+           [3,4,0,3],
+           [0,0,5,3],
+           [5,4,4,5],
+           [5,4,5,5]])
+
+
+u,sigma,q = svd_components(a)
+
+print 'u:\n%s\n' % u
+print 'eigen value:\n%s\n' % sigma
+print 'q transposta:\n%s\n' % q
+print '*' * 50
+
+u2, q2, eigenvalues_inverse = svd_reduce(u, sigma, q)
+
+print 'u2:\n%s\n' % u2
+print 'eigenvalue_inverse:\n%s\n' % eigenvalues_inverse
+print 'q2:\n%s\n' % q2
+
+gus = array([5,5,0,0,0,5])
+print '\nhere comes gus:\n%s\n' % gus
+
+gus2D = data_2D(gus, u2, eigenvalues_inverse)
+print '\ngus2D:\n%s\n' % gus2D
+
+user_sim = sim_cos(q2, gus2D)
+print user_sim
+
+###############################################################
