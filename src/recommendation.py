@@ -23,7 +23,6 @@ for line in sys.stdin:
 	user, midia_id = line.split('\t', 1)
 	try:
 		# TODO: gosto como uma fracao do percentual baixado
-		# video : gosto
 		viewers[user.strip()][midia_id] = 1
 
 	except ValueError:
@@ -59,9 +58,6 @@ def sim_distance(prefs,person1,person2):
 # Number of results and similarity function are optional params.
 def topMatches(prefs,user,n=5,similarity=sim_distance):
 	print 'topMatcher called'
-	#for user_key in prefs.keys():
-		#if user_key != user:
-			#scores=[(similarity(prefs,user,user_key)),user_key]
 	scores=[(similarity(prefs,user,other),other)
 			for other in prefs.keys() if other!=user]
 
@@ -70,7 +66,23 @@ def topMatches(prefs,user,n=5,similarity=sim_distance):
 	scores.reverse()
 	print 'done'
 	return scores[0:n]
-	
-#testing recommendation
-print topMatches(viewers, '7cb0cfbc378bf961605afa2cc940b33b', 10)
 
+#invert the dictionary passed as argument
+def invertDict(viewers):
+	result={}
+	for user in viewers:
+		for midia_id in viewers[user]:
+			result.setdefault(midia_id,{})
+	
+			# Flip item and person
+			result[midia_id][user]=viewers[user][midia_id]
+	
+	return result
+		
+#testing recommendation
+print 'user_based:'
+print topMatches(viewers, '7cb0cfbc378bf961605afa2cc940b33b', 10)
+print '*' * 100
+#print 'item_based:'
+#item_based = invertDict(viewers)
+#print topMatches(viewers, '894047', 10)
