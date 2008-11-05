@@ -87,6 +87,17 @@ def invertDict(mediaUserDict):
 
 	return result
 
+# Return a multidimensional array from a dictionary passed as argument
+def getArrayFromDict(dict):
+        matriz = []
+        for users in critics.keys():
+                dict_aux = critics[users]
+                lista = []
+                for midias_key in dict_aux.keys():
+                        lista.append(dict_aux[midias_key])
+                matriz.append(lista)
+        return matriz
+
 #############
 ## SVD ######
 #############
