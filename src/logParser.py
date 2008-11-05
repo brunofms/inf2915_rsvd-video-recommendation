@@ -1,9 +1,7 @@
 #!/usr/bin/python
 
 from collections import defaultdict 
-import sys
-import hashlib
-import fileinput
+import sys, hashlib, fileinput, os
 
 # Returns the main fields from an apache access log file
 def parseLog (input) :
@@ -55,6 +53,11 @@ def parseLog (input) :
 	mobj = patt.search(request)
 	output['midia_id'] = mobj.group(1)
 
+	#parse path
+	patt = re.compile('(.*)\?')
+	mobj = patt.search(request)
+	output['file_path'] = mobj.group(1)
+
 	#parse return code
 	rest = string.strip(rest[request_end+1:])
 	ret_code_e_ind = string.index(rest," ")
@@ -89,6 +92,14 @@ def parseLog (input) :
      
 	return output
 
+# Returns the file size of a given media
+def getMediaFileSize (path):
+	# TODO: put on config file
+	mount = '/mnt/filer_producao/flashvideo'
+	file_path = mount + path
+
+	return os.path.getsize(file_path)
+
 # Create media : user : rate dictionary -> Item centric!
 # video = { usuario:gosto, usuario:gosto ... }
 mediaUserDict = defaultdict(dict)
@@ -99,12 +110,19 @@ for line in fileinput.input("../data/logs_flashvideo/access.Nov022008.riols29"):
 		# TODO: instead of IP + User agent, use only urchin.js utma field
 		# TODO: 'tripao' code nomore! Use REGEXP 
 		result = parseLog(line)
-	
+
+		# retrieving info
 		user = hashlib.md5(result['ip_address'] + result['user_agent']).hexdigest().strip()
 		media = result['midia_id'].strip()
-		
-		# TODO: gosto como uma fracao do percentual baixado
-		mediaUserDict[media][user] = 1
+		downloaded = float(result['return_byte'].strip())
+		size = float(getMediaFileSize(result['file_path']))
+
+		view_rate = downloaded/size
+
+		# re-generated video adds noise to the dataset
+		if view_rate <= 1:
+			# how much have been downloaded
+			mediaUserDict[media][user] = view_rate
 
 	except 	Exception, why:
         # count was not a number, so silently
