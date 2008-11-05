@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 # Bruno de F. Melo e Souza
+# Gustavo Soares Souza
 # Project Library
 
 from math import sqrt
@@ -70,3 +71,16 @@ def topMatches(mediaUserDict, media, n=10, similarity=sim_pearson):
 	scores.reverse()
 
 	return scores[0:n]
+	
+#invert the dictionary passed as argument
+def invertDict(mediaUserDict):
+	result={}
+	for user in mediaUserDict:
+		for midia_id in mediaUserDict[user]:
+			result.setdefault(midia_id,{})
+
+			# Flip item and person
+			result[midia_id][user]=mediaUserDict[user][midia_id]
+
+	return result
+	
