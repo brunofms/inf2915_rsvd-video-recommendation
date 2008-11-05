@@ -5,6 +5,9 @@
 # Project Library
 
 from math import sqrt
+from numpy.linalg import *
+from numpy import *
+from operator import itemgetter
 
 # Returns the Pearson correlation coefficient for media_1 and media_2
 def sim_pearson(mediaUserDict, media_1, media_2):
@@ -72,7 +75,7 @@ def topMatches(mediaUserDict, media, n=10, similarity=sim_pearson):
 
 	return scores[0:n]
 	
-#invert the dictionary passed as argument
+# Invert the dictionary passed as argument
 def invertDict(mediaUserDict):
 	result={}
 	for user in mediaUserDict:
@@ -83,4 +86,58 @@ def invertDict(mediaUserDict):
 			result[midia_id][user]=mediaUserDict[user][midia_id]
 
 	return result
+
+#############
+## SVD ######
+#############
+
+# Returns svd components such as a = u*sigma*qT
+# 
+def svd_components(a):
+	u,sigma,q = svd(a, full_matrices = 1, compute_uv = 1)
+	#sigma = diag(sigma)
+	q = transpose(q)
+	return (u, sigma, q)
+
+# Returns reduced components u and q passed as argument to a 2D space and also
+# the inverted matrix of the eigenvalue	
+def svd_reduce(u, sigma, q):
+	#first and second column from u 
+	u2 = u[:,:2]
 	
+	#first and second column from q
+	q2 = q[:,:2]
+
+	#first two eigenvalue
+	eigenvalues = diag(sigma[0:2])
+	
+	return (u2, q2, inv(eigenvalues))
+
+# Reduces an array of data passed as argument to a 2D space
+# Example:
+# Consider the data_array to be [5 5 0 0 0 5], then the dataembed
+# returned would be something like [[-0.37752201 -0.08020351]], depending
+# of the values of u2 and eigenvalues_inversed passed as argument. 
+def data_2D(data_array, u2, eigenvalues_inversed):
+	dataembed = mat(data_array) * mat(u2) * mat(eigenvalues_inversed)
+	return dataembed
+
+# Returns a dict with the cossine similarity
+def sim_cos(q2, dataembed):
+	#number of lines in q
+	lines_q = size(q2,0)
+	
+	user_sim= {}
+	count = 1
+	for row in xrange(lines_q):
+		x = q2[row,:]
+		x_t = transpose(x)
+		dataembed_t = transpose(dataembed)
+		dot_product = dot(mat(x_t),mat(dataembed_t))
+		numerator = norm(dot_product)
+		denominator = norm(x) * norm(dataembed)
+		cossine = numerator / denominator
+		user_sim[count] = cossine
+		count = count + 1
+	
+	return sorted(user_sim.items(), key=itemgetter(1), reverse=True)
