@@ -91,8 +91,9 @@ def invertDict(mediaUserDict):
 ## SVD ######
 #############
 
+# TODO: Refactory: spatial reduction funtions to a separate file reduction.py
+
 # Returns svd components such as a = u*sigma*qT
-# 
 def svd_components(a):
 	u,sigma,q = svd(a, full_matrices = 1, compute_uv = 1)
 	#sigma = diag(sigma)
@@ -141,3 +142,25 @@ def sim_cos(q2, dataembed):
 		count = count + 1
 	
 	return sorted(user_sim.items(), key=itemgetter(1), reverse=True)
+
+# Build the complete dataset of similar items
+# Off-line processing
+def calculateSimilarItems(mediaUserDict, n=10):
+	# Create a dictionary of items showing which other items they
+	# are most similar to.
+	result={}
+
+	# Preference matrix already item centric!
+
+	c=0
+	for item in mediaUserDict.keys():
+		# Status updates for large datasets
+		c+=1
+		if c%100==0: print "%d / %d" % (c, len(mediaUserDict))
+
+		# Find the most similar items to this one
+		scores=similarity.topMatches(mediaUserDict, item, n, similarity.sim_distance)
+
+		result[item]=scores
+
+	return result

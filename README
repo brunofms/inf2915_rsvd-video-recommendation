@@ -2,10 +2,11 @@
 ## README ##
 ############
 
-1 - Download numPy module from http://www.scipy.org/Download and after extracted the tarball
+ - Make sure python-dev package is installed
+ - Download numPy module from http://www.scipy.org/Download and after extracted the tarball
     run: sudo python setup.py install
-2 - Documentation at http://www.scipy.org/Documentation
-3 - mkdir -p data/logs_flashvideo
+ - Documentation at http://www.scipy.org/Documentation
+ - mkdir -p data/logs_flashvideo
 
 
 
