@@ -170,7 +170,7 @@ def calculateSimilarItems(mediaUserDict, n=10):
 		if c%100==0: print "%d / %d" % (c, len(mediaUserDict))
 
 		# Find the most similar items to this one
-		scores=similarity.topMatches(mediaUserDict, item, n, similarity.sim_distance)
+		scores=topMatches(mediaUserDict, item, n, sim_distance)
 
 		result[item]=scores
 

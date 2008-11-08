@@ -114,11 +114,10 @@ for line in fileinput.input("../data/logs_flashvideo/access.Nov022008.riols29"):
 		# retrieving info
 		user = hashlib.md5(result['ip_address'] + result['user_agent']).hexdigest().strip()
 		media = result['midia_id'].strip()
-		downloaded = float(result['return_byte'].strip())
-		#Comentado para poder testar sem filer
-		#size = float(getMediaFileSize(result['file_path']))
+#		downloaded = float(result['return_byte'].strip())
+#		size = float(getMediaFileSize(result['file_path']))
 
-		#view_rate = downloaded/size
+#		view_rate = downloaded/size
 		view_rate = 1
 
 		# re-generated video adds noise to the dataset
