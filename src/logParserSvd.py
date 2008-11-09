@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+# Bruno de F. Melo e Souza
+# Gustavo Soares Souza
+# Project Parser
+
 from collections import defaultdict 
 import sys, hashlib, fileinput, os
 
@@ -104,8 +108,11 @@ def getMediaFileSize (path):
 # video = { usuario:gosto, usuario:gosto ... }
 mediaUserDict = defaultdict(dict)
 
+user2count = {}
+video2count = {}
+
 # TODO: read from a lot of log files
-for line in fileinput.input("../data/logs_flashvideo/access.Nov022008.riols29"):
+for line in fileinput.input("../data/logs_flashvideo/new.log"):
 	try:
 		# TODO: instead of IP + User agent, use only urchin.js utma field
 		# TODO: 'tripao' code nomore! Use REGEXP 
@@ -123,7 +130,11 @@ for line in fileinput.input("../data/logs_flashvideo/access.Nov022008.riols29"):
 		# re-generated video adds noise to the dataset
 		if view_rate <= 1:
 			# how much have been downloaded
-			mediaUserDict[media][user] = view_rate
+			#mediaUserDict[media][user] = view_rate
+			print '%s\t%s' % (user, media)
+			mediaUserDict[user][media] = view_rate
+			user2count[user] = user2count.get(user, 0) + 1
+			video2count[media] = video2count.get(media, 0) + 1
 
 	except 	Exception, why:
         # count was not a number, so silently
