@@ -134,7 +134,7 @@ def data_2D(data_array, u2, eigenvalues_inversed):
 	dataembed = mat(data_array) * mat(u2) * mat(eigenvalues_inversed)
 	return dataembed
 
-# Returns a dict with the cossine similarity
+# Returns a sorted dict with the cossine similarity 
 def sim_cos(q2, dataembed):
 	#number of lines in q
 	lines_q = size(q2,0)
