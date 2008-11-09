@@ -121,9 +121,9 @@ for line in fileinput.input("../data/logs_flashvideo/access.Nov022008.riols29"):
 		view_rate = 1
 
 		# re-generated video adds noise to the dataset
-		#if view_rate <= 1:
+		if view_rate <= 1:
 			# how much have been downloaded
-			#mediaUserDict[media][user] = view_rate
+			mediaUserDict[media][user] = view_rate
 
 	except 	Exception, why:
         # count was not a number, so silently
