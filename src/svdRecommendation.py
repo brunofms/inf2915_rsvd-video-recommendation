@@ -3,10 +3,13 @@
 # Item based recommendation media system
 
 import similarity
-
+from operator import itemgetter
 from logParserSvd import mediaUserDict
 from logParserSvd import user2count
 from logParserSvd import video2count
+
+print 'Total de videos vistos: %s' % len(video2count)
+print 'Total de usuarios: %s' % len(user2count)
 
 var_file = open("dicionario_media.txt", "w")
 var_file.write(str(mediaUserDict))
@@ -22,7 +25,7 @@ var_file.close();
 
 print 'arquivo com o dicionario escrito'
 
-print similarity.topMatches(mediaUserDict, '904968', 10, similarity.sim_distance)
+#print similarity.topMatches(mediaUserDict, '904968', 10, similarity.sim_distance)
 
 
 #print '-' * 50

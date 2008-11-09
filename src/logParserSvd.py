@@ -4,7 +4,8 @@
 # Gustavo Soares Souza
 # Project Parser
 
-from collections import defaultdict 
+from collections import defaultdict
+from operator import itemgetter
 import sys, hashlib, fileinput, os
 
 # Returns the main fields from an apache access log file
@@ -108,8 +109,11 @@ def getMediaFileSize (path):
 # video = { usuario:gosto, usuario:gosto ... }
 mediaUserDict = defaultdict(dict)
 
-user2count = {}
-video2count = {}
+user2count = defaultdict(dict)
+video2count = defaultdict(dict)
+
+print 'user2count'
+print user2count
 
 # TODO: read from a lot of log files
 for line in fileinput.input("../data/logs_flashvideo/new.log"):
@@ -131,13 +135,32 @@ for line in fileinput.input("../data/logs_flashvideo/new.log"):
 		if view_rate <= 1:
 			# how much have been downloaded
 			#mediaUserDict[media][user] = view_rate
-			print '%s\t%s' % (user, media)
+			#print '%s\t%s' % (user, media)
 			mediaUserDict[user][media] = view_rate
 			user2count[user] = user2count.get(user, 0) + 1
-			video2count[media] = video2count.get(media, 0) + 1
+			#user2count[user] = user2count[user] + 1
+			video2count[media] = (video2count.get(media, 0)) + 1
 
 	except 	Exception, why:
         # count was not a number, so silently
         # ignore/discard this line
 		#print "Passing...", why
 		pass
+
+
+user2count = sorted(user2count.items(), key=itemgetter(1), reverse=True)
+video2count = sorted(video2count.items(), key=itemgetter(1), reverse=True)
+print type(user2count)
+print type(mediaUserDict)
+#print '*' * 50
+#print 'criando matriz video x video'
+#for user_item in mediaUserDict.keys():
+#	for video_item in video2count:
+#		try:
+#			mediaUserDict[user_item][video_item]
+#		except KeyError:
+#			mediaUserDict[user_item][video_item] = 0
+#	print mediaUserDict[user_item]
+#	break
+
+#print 'done'
