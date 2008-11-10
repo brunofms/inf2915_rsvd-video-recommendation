@@ -98,6 +98,10 @@ def getArrayFromDict(dictionary):
                 matriz.append(lista)
         return matriz
 
+#Return a sorted list from a dict
+def getSortedDict(dictionary):
+	return sorted(dictionary.items(), key=itemgetter(1), reverse=True)
+
 #############
 ## SVD ######
 #############

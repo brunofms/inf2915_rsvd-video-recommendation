@@ -23,7 +23,15 @@ var_file = open("video2count.txt", "w")
 var_file.write(str(video2count))
 var_file.close();
 
-print 'arquivo com o dicionario escrito'
+#Sorted
+var_file = open("user2count_sorted.txt", "w")
+var_file.write(str(similarity.getSortedDict(user2count)))
+var_file.close();
+
+var_file = open("video2count_sorted.txt", "w")
+var_file.write(str(similarity.getSortedDict(video2count)))
+var_file.close();
+
 
 #print similarity.topMatches(mediaUserDict, '904968', 10, similarity.sim_distance)
 
@@ -34,6 +42,11 @@ print 'arquivo com o dicionario escrito'
 
 
 matriz = similarity.getArrayFromDict(mediaUserDict)
+
+var_file = open("matriz.txt", "w")
+var_file.write(str(matriz))
+var_file.close();
+
 u, sigma, q = similarity.svd_components(matriz)
 
 print 'u:\n%s\n' % u

@@ -112,9 +112,6 @@ mediaUserDict = defaultdict(dict)
 user2count = defaultdict(dict)
 video2count = defaultdict(dict)
 
-print 'user2count'
-print user2count
-
 # TODO: read from a lot of log files
 for line in fileinput.input("../data/logs_flashvideo/new.log"):
 	try:
@@ -138,7 +135,6 @@ for line in fileinput.input("../data/logs_flashvideo/new.log"):
 			#print '%s\t%s' % (user, media)
 			mediaUserDict[user][media] = view_rate
 			user2count[user] = user2count.get(user, 0) + 1
-			#user2count[user] = user2count[user] + 1
 			video2count[media] = (video2count.get(media, 0)) + 1
 
 	except 	Exception, why:
@@ -148,19 +144,17 @@ for line in fileinput.input("../data/logs_flashvideo/new.log"):
 		pass
 
 
-user2count = sorted(user2count.items(), key=itemgetter(1), reverse=True)
-video2count = sorted(video2count.items(), key=itemgetter(1), reverse=True)
-print type(user2count)
-print type(mediaUserDict)
-#print '*' * 50
-#print 'criando matriz video x video'
-#for user_item in mediaUserDict.keys():
-#	for video_item in video2count:
-#		try:
-#			mediaUserDict[user_item][video_item]
-#		except KeyError:
-#			mediaUserDict[user_item][video_item] = 0
-#	print mediaUserDict[user_item]
-#	break
 
-#print 'done'
+
+print '*' * 50
+print 'populando matriz com videos nao vistos'
+for user_item in mediaUserDict.keys():
+	for video_item in video2count.keys():
+		try:
+			mediaUserDict[user_item][video_item]
+		except KeyError:
+			mediaUserDict[user_item][video_item] = 0
+	#print mediaUserDict[user_item]
+	break
+
+print 'done'
