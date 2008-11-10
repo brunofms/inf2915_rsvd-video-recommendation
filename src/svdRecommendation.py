@@ -47,6 +47,17 @@ var_file = open("matriz.txt", "w")
 var_file.write(str(matriz))
 var_file.close();
 
+size_linha = len(matriz[0])
+print 'total de linhas: %d' % len(matriz)
+print 'tamanho da linha 0: %d' % size_linha
+count_error = 0
+for line in matriz:
+	if len(line) != size_linha:
+		count_error = count_error + 1
+		#print 'DIFF'
+
+print 'total de linhas erradas: %d' % count_error
+
 u, sigma, q = similarity.svd_components(matriz)
 
 print 'u:\n%s\n' % u
