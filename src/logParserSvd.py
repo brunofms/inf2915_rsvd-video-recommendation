@@ -106,15 +106,29 @@ def getMediaFileSize (path):
 
 	return os.path.getsize(file_path)
 
+# Returns elapsed time acording to the start time
+def elapsed(inicio):
+	print 'done'
+	fim = time.time()
+	elapsed = (fim - inicio) / 60
+	print 'duracao: %f min' % elapsed
+	
 # Create media : user : rate dictionary -> Item centric!
 # video = { usuario:gosto, usuario:gosto ... }
+## TO BE IMPORTED
 mediaUserDict = defaultdict(dict)
-
+media_matrix = []
 user2count = defaultdict(dict)
 video2count = defaultdict(dict)
+user_index = {}
+video_index = {}
 
+filename = "../data/logs_flashvideo/new.log"
+
+inicio = time.time()
+print 'reading and parsing file %s ...' % filename
 # TODO: read from a lot of log files
-for line in fileinput.input("../data/logs_flashvideo/new.log"):
+for line in fileinput.input(filename):
 	try:
 		# TODO: instead of IP + User agent, use only urchin.js utma field
 		# TODO: 'tripao' code nomore! Use REGEXP 
@@ -144,23 +158,66 @@ for line in fileinput.input("../data/logs_flashvideo/new.log"):
 		#print "Passing...", why
 		pass
 
+elapsed(inicio)
 
-
-
+#####################
+# Cria matriz vazia #
+#####################
 print '*' * 50
-print 'populando matriz com videos nao vistos'
+print 'criando matriz vazia'
 inicio = time.time()
-print 'inicio: %s' % inicio
-for user_item in mediaUserDict.keys():
-	for video_item in video2count.keys():
-		try:
-			mediaUserDict[user_item][video_item]
-		except KeyError:
-			mediaUserDict[user_item][video_item] = 0
-	#print mediaUserDict[user_item]
 
-print 'done'
-fim = time.time()
-elapsed = fim - inicio
-print 'fim: %s' % fim
-print 'duracao: %s seg' % elapsed
+i = 0
+j = 0
+k = 0
+for user_item in user2count.keys():
+	lista = []
+	user_index[user_item] = i
+	for video_item in video2count.keys():
+		lista.append(0)
+		if k == 0:
+			video_index[video_item] = j
+		j = j + 1
+	if k == 0:
+		k = 1
+	media_matrix.append(lista)
+	i = i + 1
+	
+elapsed(inicio)
+
+########################################
+# Popula a matriz ######################
+########################################
+inicio = time.time()
+print 'populando a matriz...'
+for line in fileinput.input(filename):
+	try:
+		# TODO: instead of IP + User agent, use only urchin.js utma field
+		# TODO: 'tripao' code nomore! Use REGEXP 
+		result = parseLog(line)
+
+		# retrieving info
+		user = hashlib.md5(result['ip_address'] + result['user_agent']).hexdigest().strip()
+		media = result['midia_id'].strip()
+		#downloaded = float(result['return_byte'].strip())
+		#size = float(getMediaFileSize(result['file_path']))
+
+		#view_rate = downloaded/size
+		view_rate = 1
+
+		# re-generated video adds noise to the dataset
+		if view_rate <= 1:
+			# how much have been downloaded
+			#mediaUserDict[media][user] = view_rate
+			#print '%s\t%s' % (user, media)
+			media_matrix[user_index[user]][video_index[media]] = view_rate
+
+	except 	Exception, why:
+        # count was not a number, so silently
+        # ignore/discard this line
+		#print "Passing...", why
+		pass
+
+elapsed(inicio)
+
+##################################
