@@ -2,27 +2,32 @@
 
 # Item based recommendation media system
 
+import time
 import similarity
 from operator import itemgetter
 from logParserSvd import mediaUserDict
 from logParserSvd import user2count
 from logParserSvd import video2count
 
+inicio = time.time()
+
 print 'Total de videos vistos: %s' % len(video2count)
 print 'Total de usuarios: %s' % len(user2count)
 
-var_file = open("dicionario_media.txt", "w")
-var_file.write(str(mediaUserDict))
-var_file.close();
+#var_file = open("dicionario_media.txt", "w")
+#var_file.write(str(mediaUserDict))
+#var_file.close();
 
+print 'escrevendo user2count.txt'
 var_file = open("user2count.txt", "w")
 var_file.write(str(user2count))
 var_file.close();
-
+print 'done'
+print 'escrevendo video2count.txt'
 var_file = open("video2count.txt", "w")
 var_file.write(str(video2count))
 var_file.close();
-
+print 'done'
 #Sorted
 var_file = open("user2count_sorted.txt", "w")
 var_file.write(str(similarity.getSortedDict(user2count)))
@@ -42,21 +47,25 @@ var_file.close();
 
 
 matriz = similarity.getArrayFromDict(mediaUserDict)
+mediaUserDict = None
 
-var_file = open("matriz.txt", "w")
-var_file.write(str(matriz))
-var_file.close();
+#var_file = open("matriz.txt", "w")
+#var_file.write(str(matriz))
+#var_file.close();
 
 size_linha = len(matriz[0])
 print 'total de linhas: %d' % len(matriz)
 print 'tamanho da linha 0: %d' % size_linha
-count_error = 0
-for line in matriz:
-	if len(line) != size_linha:
-		count_error = count_error + 1
-		#print 'DIFF'
+print 'tamanho da linha 1: %d' % len(matriz[1])
+print 'tamanho da linha 2: %d' % len(matriz[2])
+print 'tamanho da linha 3: %d' % len(matriz[3])
+#count_error = 0
+#for line in matriz:
+#	if len(line) != size_linha:
+#		count_error = count_error + 1
+#		#print 'DIFF'
 
-print 'total de linhas erradas: %d' % count_error
+#print 'total de linhas erradas: %d' % count_error
 
 u, sigma, q = similarity.svd_components(matriz)
 
@@ -64,3 +73,8 @@ print 'u:\n%s\n' % u
 print 'eigen value:\n%s\n' % sigma
 print 'q transposta:\n%s\n' % q
 print '*' * 50
+
+fim = time.time()
+elapsed = fim - inicio
+print 'fim: %s' % fim
+print 'duracao: %s seg' % elapsed
