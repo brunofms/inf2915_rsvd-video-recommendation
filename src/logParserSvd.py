@@ -4,6 +4,7 @@
 # Gustavo Soares Souza
 # Project Parser
 
+import time
 from collections import defaultdict
 from operator import itemgetter
 import sys, hashlib, fileinput, os
@@ -148,6 +149,8 @@ for line in fileinput.input("../data/logs_flashvideo/new.log"):
 
 print '*' * 50
 print 'populando matriz com videos nao vistos'
+inicio = time.time()
+print 'inicio: %s' % inicio
 for user_item in mediaUserDict.keys():
 	for video_item in video2count.keys():
 		try:
@@ -155,6 +158,9 @@ for user_item in mediaUserDict.keys():
 		except KeyError:
 			mediaUserDict[user_item][video_item] = 0
 	#print mediaUserDict[user_item]
-	break
 
 print 'done'
+fim = time.time()
+elapsed = fim - inicio
+print 'fim: %s' % fim
+print 'duracao: %s seg' % elapsed
