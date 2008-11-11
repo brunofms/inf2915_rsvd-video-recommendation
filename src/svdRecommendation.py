@@ -6,6 +6,7 @@ import sys
 import os
 import time
 import similarity
+import svd_aux
 from operator import itemgetter
 from logParserSvd import mediaUserDict
 from logParserSvd import user2count
@@ -70,10 +71,13 @@ print 'tamanho da linha 1: %d' % len(media_matrix[1])
 print 'tamanho da linha 2: %d' % len(media_matrix[2])
 print 'tamanho da linha 3: %d' % len(media_matrix[3])
 
+##########
+# SVD ####
+##########
 
 print 'obtendo as componentes svd...'
 inicio = time.time()
-u, sigma, q = similarity.svd_components(media_matrix)
+u, sigma, q = svd_aux.svd(media_matrix)
 
 elapsed(inicio)
 
