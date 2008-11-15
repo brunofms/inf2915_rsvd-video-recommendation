@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 
 # Bruno de F. Melo e Souza
 # Gustavo Soares Souza
@@ -134,7 +134,7 @@ print 'SVD running...'
 #pdb.set_trace()
 err = 0
 for i_aux in range(i):
-	print 'w[i_aux] antes: %f' % w[i_aux]
+	print 'w[%d] antes: %f' % (i_aux, w[i_aux])
 	#print 'obtendo o vetor w aproximado para o usuario %d' % i_aux
 	for j_aux in range(j):
 		'''print 'j_aux: %d' % j_aux
@@ -151,11 +151,12 @@ for i_aux in range(i):
 		err = err + (Aij - (q[j_aux] * w[i_aux])) * q[j_aux]
 		#print 'erro depois: %f' % err
 	w[i_aux] = w[i_aux] + (lrate * err)
-	print 'w[i_aux] depois: %f' % w[i_aux]
+	print 'w[%d] depois: %f' % (i_aux, w[i_aux])
 	err = 0
 
 elapsed(inicio)
 
+print '*' * 60
 print 'w: \n%s' % w
 print '*' * 60
 print 'q: \n%s' % q
