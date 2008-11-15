@@ -9,7 +9,7 @@ from collections import defaultdict
 from operator import itemgetter
 import sys, hashlib, fileinput, os
 
-
+#201.19.101.6 - - [02/Nov/2008:23:57:41 -0200] "GET /esporte/1/tempo_real/2008/11/02/EFWEBRA_T_905549_flvbl.flv?0312256775751206325916122567745660291106865I+d/Qvah6yPmW2Y7MbsCg HTTP/1.1" 200 14218153 "http://video.globo.com/Portal/videos/cda/player/player.swf" "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.0.04506; InfoPath.2)" "RMID=bd195dd4489df250; __utma=156749805.1050736587.1218310759.1224084396.1225677441.10; __utmz=156749805.1225677441.10.5.utmccn=(referral)|utmcsr=globoesporte.globo.com|utmcct=/Esportes/Noticias/Futebol/Brasileirao/Serie_A/0,,MUL846435-9827,00.html|utmcmd=referral; __utmb=156749805; __utmc=156749805"i - 138
 # Returns the main fields from an apache access log file
 def parseLog (input) :
 	import re,string
@@ -96,7 +96,15 @@ def parseLog (input) :
 		output['user_agent'] = ""
 	else:
 		output['user_agent'] = after_ref_url[:e_quote_user_agent]
-     
+	
+	#get __utma=
+	#patt = re.compile('__utma=(.*)[^ ];')
+	#mobj = patt.search(rest)
+	#output['utma'] = mobj.group(1)
+	#print 'rest: %s' % rest
+	#print 'utma: %s' % output['utma']
+	
+
 	return output
 
 # Returns the file size of a given media
@@ -115,126 +123,117 @@ def elapsed(inicio):
 	print 'duracao: %f min' % elapsed
 
 
-# Create media : user : rate dictionary -> Item centric!
-# video = { usuario:gosto, usuario:gosto ... }
-## TO BE IMPORTED
+#################
+## MAIN #########
+#################
+logs_dir = "../data/logs_flashvideo"
+filename = "../data/new.log"
+file_dataset = "../data/dataset.txt"
+file_userdistribution = "new_user_distribution.xls"
+file_videodistribution = "new_video_distribution.xls"
+
 mediaUserDict = defaultdict(dict)
 media_matrix = []
 user2count = defaultdict(dict)
 video2count = defaultdict(dict)
 user_index = {}
 video_index = {}
-
-filename = "../data/logs_flashvideo/new.log"
-file_userdistribution = "new_user_distribution.xls"
-file_videodistribution = "new_video_distribution.xls"
+count_lines = 0
 
 inicio = time.time()
-print 'reading and parsing file %s ...' % filename
-# TODO: read from a lot of log files
-for line in fileinput.input(filename):
-	try:
-		# TODO: instead of IP + User agent, use only urchin.js utma field
-		# TODO: 'tripao' code nomore! Use REGEXP 
-		result = parseLog(line)
+dataset_file = open(file_dataset, "w")
 
-		# retrieving info
-		user = hashlib.md5(result['ip_address'] + result['user_agent']).hexdigest().strip()
-		media = result['midia_id'].strip()
-		#downloaded = float(result['return_byte'].strip())
-		#size = float(getMediaFileSize(result['file_path']))
+files_to_process = os.listdir(logs_dir)
+print 'files to process: %s' % files_to_process
+for file_item in files_to_process:
+	filename = '%s/%s' % (logs_dir, file_item)
+	print 'reading and parsing file %s ...' % filename
+	# TODO: read from a lot of log files
+	for line in fileinput.input(filename):
+		try:
+			# TODO: instead of IP + User agent, use only urchin.js utma field
+			# TODO: 'tripao' code nomore! Use REGEXP 
+			result = parseLog(line)
 
-		#view_rate = downloaded/size
-		view_rate = 1
+			# retrieving info
+			user = hashlib.md5(result['ip_address'] + result['user_agent']).hexdigest().strip()
+			media = result['midia_id'].strip()
+			#downloaded = float(result['return_byte'].strip())
+			#size = float(getMediaFileSize(result['file_path']))
 
-		# re-generated video adds noise to the dataset
-		if view_rate <= 1:
-			# how much have been downloaded
-			#mediaUserDict[media][user] = view_rate
-			#print '%s\t%s' % (user, media)
-			mediaUserDict[user][media] = view_rate
-			user2count[user] = user2count.get(user, 0) + 1
-			video2count[media] = (video2count.get(media, 0)) + 1
+			#view_rate = downloaded/size
+			view_rate = 1
 
-	except 	Exception, why:
-        # count was not a number, so silently
-        # ignore/discard this line
-		#print "Passing...", why
-		pass
+			# re-generated video adds noise to the dataset
+			if view_rate <= 1:
+				# how much have been downloaded
+				#mediaUserDict[media][user] = view_rate
+				dataset_file.write('%s\t%s\n' % (user, media))
+				mediaUserDict[user][media] = view_rate
+				user2count[user] = user2count.get(user, 0) + 1
+				video2count[media] = (video2count.get(media, 0)) + 1
+		
+			count_lines = count_lines + 1
 
+		except 	Exception, why:
+	        # count was not a number, so silently
+	        # ignore/discard this line
+			#print "Passing...", why
+			pass
+dataset_file.close()
 elapsed(inicio)
+print 'total de linhas processadas: %d' % count_lines
 
-sys.exit(0)
-
-#####################
-# Cria matriz vazia #
-#####################
-user_file = open(file_userdistribution, "w")
-video_file = open(file_videodistribution, "w")
-
-
-
-print '*' * 50
-print 'criando matriz vazia'
-inicio = time.time()
-
+#######################################
+# Cria vetores w e q com chute inicial#
+#######################################
+user_file = open("user_distribution.xls", "w")
+video_file = open("video_distribution.xls", "w")
 i = 0
 j = 0
-k = 0
+w = []
+q = []
+taxa = 0.001
+initial_guess = 0.1
+
+print 'criando o vetor w com o chute inicial'
+inicio = time.time()
+
 for user_item in user2count.keys():
 	linha = '%s\t%s\n' % (user_item, user2count[user_item])
 	user_file.write(linha)
-	lista = []
-	user_index[user_item] = i
-	for video_item in video2count.keys():
-		lista.append(0)
-		if k == 0:
-			linha = '%s\t%s\n' % (video_item, video2count[video_item])
-			video_file.write(linha)
-			video_index[video_item] = j
-		j = j + 1
-	if k == 0:
-		k = 1
-	media_matrix.append(lista)
-	i = i + 1
+	w.append(initial_guess)
+	
+elapsed(inicio)
 
+print 'criando o vetor q com o chute inicial'
+inicio = time.time()
+
+for video_item in video2count.keys():
+	linha = '%s\t%s\n' % (video_item, video2count[video_item])
+	video_file.write(linha)
+	q.append(initial_guess)
+	
 elapsed(inicio)
 
 user_file.close();
 video_file.close();
 
-sys.exit(0)
 ########################################
 # Popula a matriz ######################
 ########################################
 inicio = time.time()
-print 'populando a matriz...'
-for line in fileinput.input(filename):
-	try:
-		# TODO: instead of IP + User agent, use only urchin.js utma field
-		# TODO: 'tripao' code nomore! Use REGEXP 
-		result = parseLog(line)
-
-		# retrieving info
-		user = hashlib.md5(result['ip_address'] + result['user_agent']).hexdigest().strip()
-		media = result['midia_id'].strip()
-		#downloaded = float(result['return_byte'].strip())
-		#size = float(getMediaFileSize(result['file_path']))
-
-		#view_rate = downloaded/size
-		view_rate = 1
-
-		# re-generated video adds noise to the dataset
-		if view_rate <= 1:
-			# how much have been downloaded
-			#mediaUserDict[media][user] = view_rate
-			#print '%s\t%s' % (user, media)
-			media_matrix[user_index[user]][video_index[media]] = view_rate
-
-	except 	Exception, why:
-        # count was not a number, so silently
-        # ignore/discard this line
-		#print "Passing...", why
-		pass
+print 'criando a matriz esparsa...'
+for users in mediaUserDict.keys():
+        dict_aux = mediaUserDict[users]
+        lista = []
+        for midias_key in dict_aux.keys():
+                lista.append(dict_aux[midias_key])
+        media_matrix.append(lista)
 
 elapsed(inicio)
+
+##################################
+print '\n'
+print 'Total de usuarios: %s' % len(w)
+print 'Total de videos: %s' % len(q)
