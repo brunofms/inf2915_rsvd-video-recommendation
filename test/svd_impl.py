@@ -105,6 +105,7 @@ video_file_distribution.close()
 linha = ''
 inicio = time.time()
 print 'criando a matriz esparsa...'
+
 for users in mediaUserDict.keys():
         dict_aux = mediaUserDict[users]
         lista = []
@@ -115,6 +116,8 @@ for users in mediaUserDict.keys():
         matrix_xls.write(linha+'\n')
         linha = ''
 
+
+
 elapsed(inicio)
 matrix_xls.close()
 ##################################
@@ -122,25 +125,37 @@ print '\n'
 print 'Total de usuarios: %s' % len(w)
 print 'Total de videos: %s' % len(q)
 
-sys.exit(0)
-
 import pdb
 ###################
 ## BEGING SVD #####
 ###################
+inicio = time.time()
+print 'SVD running...'
 #pdb.set_trace()
 err = 0
-for j_aux in range(j):
-	print 'obtendo o vetor w aproximado para o usuario %d' % j_aux
-	for i_aux in range(i):
+for i_aux in range(i):
+	print 'w[i_aux] antes: %f' % w[i_aux]
+	#print 'obtendo o vetor w aproximado para o usuario %d' % i_aux
+	for j_aux in range(j):
+		'''print 'j_aux: %d' % j_aux
+		print 'q[j_aux]: %f' % q[j_aux]
 		print 'i_aux: %d' % i_aux
-		print 'q[i_aux]: %f' % q[i_aux]
-		print 'j_aux: %d' % j_aux
-		print 'w[j_aux]: %f' % w[j_aux]
-		print 'media_matrix[i_aux][j_aux]: %f' % media_matrix[i_aux][j_aux]
-		print 'erro antes: %f' % err
-		err = err + (media_matrix[i_aux][j_aux] - (q[i_aux] * w[j_aux])) * q[i_aux]
-		print 'erro depois: %f' % err
-	w[j_aux] = w[j_aux] + (lrate * err)
-	print 'w[j_aux] depois: %f' % w[j_aux]
+		print 'w[i_aux]: %f' % w[i_aux]'''
+		Aij = 0
+		try:
+			Aij = media_matrix[i_aux][j_aux]
+		except Exception:
+			pass
+		#print 'media_matrix[i_aux][j_aux]: %f' % Aij
+		#print 'erro antes: %f' % err
+		err = err + (Aij - (q[j_aux] * w[i_aux])) * q[j_aux]
+		#print 'erro depois: %f' % err
+	w[i_aux] = w[i_aux] + (lrate * err)
+	print 'w[i_aux] depois: %f' % w[i_aux]
 	err = 0
+
+elapsed(inicio)
+
+print 'w: \n%s' % w
+print '*' * 60
+print 'q: \n%s' % q
