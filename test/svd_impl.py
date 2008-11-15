@@ -20,7 +20,7 @@ user_index = {}
 video_index = {}
 count_lines = 0
 
-filename = "../data/dataset.txt"
+filename = "/Users/gustavosoares/repos/git/video-recommendation/data/dataset.txt"
 
 # Parses de dataset file
 def parseDataSet() :
@@ -62,13 +62,14 @@ parseDataSet()
 #######################################
 # Cria vetores w e q com chute inicial#
 #######################################
-user_file = open("user_distribution.xls", "w")
-video_file = open("video_distribution.xls", "w")
+user_file_distribution = open("user_distribution.xls", "w")
+video_file_distribution = open("video_distribution.xls", "w")
+matrix_xls = open("media_matrix.xls", "w")
 i = 0
 j = 0
 w = []
 q = []
-taxa = 0.001
+lrate = 0.001
 initial_guess = 0.1
 
 print 'criando o vetor w com o chute inicial'
@@ -76,8 +77,10 @@ inicio = time.time()
 
 for user_item in user2count.keys():
 	linha = '%s\t%s\n' % (user_item, user2count[user_item])
-	user_file.write(linha)
+	user_index[user_item] = i
+	user_file_distribution.write(linha)
 	w.append(initial_guess)
+	i = i + 1
 	
 elapsed(inicio)
 
@@ -86,29 +89,58 @@ inicio = time.time()
 
 for video_item in video2count.keys():
 	linha = '%s\t%s\n' % (video_item, video2count[video_item])
-	video_file.write(linha)
+	video_index[video_item] = j
+	video_file_distribution.write(linha)
 	q.append(initial_guess)
+	j = j + 1
 	
 elapsed(inicio)
 
-user_file.close();
-video_file.close();
+user_file_distribution.close()
+video_file_distribution.close()
 
 ########################################
 # Popula a matriz ######################
 ########################################
+linha = ''
 inicio = time.time()
 print 'criando a matriz esparsa...'
 for users in mediaUserDict.keys():
         dict_aux = mediaUserDict[users]
         lista = []
         for midias_key in dict_aux.keys():
+                linha = linha + '%d\t' % dict_aux[midias_key]
                 lista.append(dict_aux[midias_key])
         media_matrix.append(lista)
+        matrix_xls.write(linha+'\n')
+        linha = ''
 
 elapsed(inicio)
-
+matrix_xls.close()
 ##################################
 print '\n'
 print 'Total de usuarios: %s' % len(w)
 print 'Total de videos: %s' % len(q)
+
+sys.exit(0)
+
+import pdb
+###################
+## BEGING SVD #####
+###################
+#pdb.set_trace()
+err = 0
+for j_aux in range(j):
+	print 'obtendo o vetor w aproximado para o usuario %d' % j_aux
+	for i_aux in range(i):
+		print 'i_aux: %d' % i_aux
+		print 'q[i_aux]: %f' % q[i_aux]
+		print 'j_aux: %d' % j_aux
+		print 'w[j_aux]: %f' % w[j_aux]
+		print 'media_matrix[i_aux][j_aux]: %f' % media_matrix[i_aux][j_aux]
+		print 'erro antes: %f' % err
+		err = err + (media_matrix[i_aux][j_aux] - (q[i_aux] * w[j_aux])) * q[i_aux]
+		print 'erro depois: %f' % err
+	w[j_aux] = w[j_aux] + (lrate * err)
+	print 'w[j_aux] depois: %f' % w[j_aux]
+	err = 0
