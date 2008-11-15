@@ -163,6 +163,11 @@ elapsed(inicio)
 #####################
 # Cria matriz vazia #
 #####################
+user_file = open("user_distribution.xls", "w")
+video_file = open("video_distribution.xls", "w")
+
+
+
 print '*' * 50
 print 'criando matriz vazia'
 inicio = time.time()
@@ -171,11 +176,15 @@ i = 0
 j = 0
 k = 0
 for user_item in user2count.keys():
+	linha = '%s\t%s\n' % (user_item, user2count[user_item])
+	user_file.write(linha)
 	lista = []
 	user_index[user_item] = i
 	for video_item in video2count.keys():
 		lista.append(0)
 		if k == 0:
+			linha = '%s\t%s\n' % (video_item, video2count[video_item])
+			video_file.write(linha)
 			video_index[video_item] = j
 		j = j + 1
 	if k == 0:
@@ -185,6 +194,10 @@ for user_item in user2count.keys():
 	
 elapsed(inicio)
 
+user_file.close();
+video_file.close();
+
+sys.exit(0)
 ########################################
 # Popula a matriz ######################
 ########################################

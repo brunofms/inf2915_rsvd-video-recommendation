@@ -58,8 +58,8 @@ for row in xrange(num_linhas_vh2):
 	#print 'linha %d -> %s' % (row,x)
 	x_t = transpose(x)
 	bobembed_t = transpose(bobembed)
-	#print 'x_t:\n%s\n' % x_t
-	#print 'bobembed_t:\n%s\n' % bobembed_t
+	print 'x_t:\n%s\n' % x_t
+	print 'bobembed_t:\n%s\n' % bobembed_t
 	dot_product = dot(mat(x_t),mat(bobembed_t))
 	numerador = norm(dot_product)
 	#print '\tnumerador: %f' % numerador

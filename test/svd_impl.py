@@ -169,8 +169,8 @@ i = 0
 j = 0
 w = []
 q = []
-n = 0.1
-initial_guess = 0.01
+taxa = 0.001
+initial_guess = 0.1
 
 print 'criando o vetor w inicial'
 inicio = time.time()
