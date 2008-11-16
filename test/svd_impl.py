@@ -20,7 +20,7 @@ user_index = {}
 video_index = {}
 count_lines = 0
 
-filename = "/Users/gustavosoares/repos/git/video-recommendation/data/dataset.txt"
+filename = "../data/dataset.txt"
 
 # Parses de dataset file
 def parseDataSet() :
@@ -129,12 +129,13 @@ import pdb
 ###################
 ## BEGING SVD #####
 ###################
+svd_log = open("svd.log", "w")
 inicio = time.time()
 print 'SVD running...'
 #pdb.set_trace()
 err = 0
 for i_aux in range(i):
-	print 'w[%d] antes: %f' % (i_aux, w[i_aux])
+	svd_log.write('w[%d] antes: %f\n' % (i_aux, w[i_aux]))
 	#print 'obtendo o vetor w aproximado para o usuario %d' % i_aux
 	for j_aux in range(j):
 		'''print 'j_aux: %d' % j_aux
@@ -151,12 +152,14 @@ for i_aux in range(i):
 		err = err + (Aij - (q[j_aux] * w[i_aux])) * q[j_aux]
 		#print 'erro depois: %f' % err
 	w[i_aux] = w[i_aux] + (lrate * err)
-	print 'w[%d] depois: %f' % (i_aux, w[i_aux])
+	svd_log.write('w[%d] depois: %f\n' % (i_aux, w[i_aux]))
 	err = 0
 
 elapsed(inicio)
 
 print '*' * 60
-print 'w: \n%s' % w
+svd_log.write('w: \n%s\n' % w)
 print '*' * 60
-print 'q: \n%s' % q
+svd_log.write('q: \n%s\n' % q)
+
+svd_log.close()
