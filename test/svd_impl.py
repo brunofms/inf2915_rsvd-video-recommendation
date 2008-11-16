@@ -13,7 +13,7 @@ file_userdistribution = "new_user_distribution.xls"
 file_videodistribution = "new_video_distribution.xls"
 
 mediaUserDict = defaultdict(dict)
-media_matrix = []
+midia_matrix = []
 user2count = defaultdict(dict)
 video2count = defaultdict(dict)
 user_index = {}
@@ -64,7 +64,7 @@ parseDataSet()
 #######################################
 user_file_distribution = open("user_distribution.xls", "w")
 video_file_distribution = open("video_distribution.xls", "w")
-matrix_xls = open("media_matrix.xls", "w")
+matrix_xls = open("midia_matrix.xls", "w")
 i = 0
 j = 0
 w = []
@@ -112,7 +112,7 @@ for users in mediaUserDict.keys():
         for midias_key in dict_aux.keys():
                 linha = linha + '%d\t' % dict_aux[midias_key]
                 lista.append(dict_aux[midias_key])
-        media_matrix.append(lista)
+        midia_matrix.append(lista)
         matrix_xls.write(linha+'\n')
         linha = ''
 
@@ -126,17 +126,22 @@ print 'Total de usuarios: %s' % len(w)
 print 'Total de videos: %s' % len(q)
 
 import pdb
+#pdb.set_trace()
 ###################
 ## BEGING SVD #####
 ###################
 svd_log = open("svd.log", "w")
-inicio = time.time()
 print 'SVD running...'
-#pdb.set_trace()
+
+##################
+## VETOR W #######
+##################
+inicio = time.time()
+print 'obtendo o vetor w...'
+w_log = open("vetor_w.log", "w")
 err = 0
 for i_aux in range(i):
 	svd_log.write('w[%d] antes: %f\n' % (i_aux, w[i_aux]))
-	#print 'obtendo o vetor w aproximado para o usuario %d' % i_aux
 	for j_aux in range(j):
 		'''print 'j_aux: %d' % j_aux
 		print 'q[j_aux]: %f' % q[j_aux]
@@ -144,10 +149,10 @@ for i_aux in range(i):
 		print 'w[i_aux]: %f' % w[i_aux]'''
 		Aij = 0
 		try:
-			Aij = media_matrix[i_aux][j_aux]
+			Aij = midia_matrix[i_aux][j_aux]
 		except Exception:
 			pass
-		#print 'media_matrix[i_aux][j_aux]: %f' % Aij
+		#print 'midia_matrix[i_aux][j_aux]: %f' % Aij
 		#print 'erro antes: %f' % err
 		err = err + (Aij - (q[j_aux] * w[i_aux])) * q[j_aux]
 		#print 'erro depois: %f' % err
@@ -158,8 +163,37 @@ for i_aux in range(i):
 elapsed(inicio)
 
 print '*' * 60
-svd_log.write('w: \n%s\n' % w)
+w_log.write('w: \n%s\n' % w)
+w_log.close()
+
+##################
+## VETOR Q #######
+##################
+inicio = time.time()
+print 'obtendo o vetor q...'
+q_log = open("vetor_q.log", "w")
+
+err = 0
+for j_aux in range(j):
+	svd_log.write('q[%d] antes: %f\n' % (j_aux, q[j_aux]))
+	for i_aux in range(i):
+		Aij = 0
+		try:
+			Aij = midia_matrix[i_aux][j_aux]
+		except Exception:
+			pass
+		#print 'midia_matrix[i_aux][j_aux]: %f' % Aij
+		#print 'erro antes: %f' % err
+		err = err + (Aij - (q[j_aux] * w[i_aux])) * w[i_aux]
+		#print 'erro depois: %f' % err
+	q[j_aux] = q[j_aux] + (lrate * err)
+	svd_log.write('q[%d] depois: %f\n' % (j_aux, q[j_aux]))
+	err = 0
+
+elapsed(inicio)
+
 print '*' * 60
-svd_log.write('q: \n%s\n' % q)
+q_log.write('q: \n%s\n' % q)
+q_log.close()
 
 svd_log.close()
