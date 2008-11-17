@@ -47,8 +47,30 @@ def parseDataSet() :
 
 #builds the matrix
 def buildMatrix():
+	print 'building the matrix %s ...' % filename
 	inicio = time.time()
-	print 'building matrix %s ...' % filename
+	i = 0
+	j = 0
+	k = 0
+	for user_item in user2count.keys():
+		lista = []
+		user_index[user_item] = i
+		for video_item in video2count.keys():
+			lista.append(0)
+			if k == 0:
+				video_index[video_item] = j
+			j = j + 1
+		if k == 0:
+			k = 1
+		midia_matrix.append(lista)
+		i = i + 1
+
+	elapsed(inicio)
+
+#populate the matrix
+def populateMatrix():
+	inicio = time.time()
+	print 'populating matrix %s ...' % filename
 	for line in fileinput.input(filename):
 		try:
 			(user, media, rating) = line.split('|')
@@ -132,11 +154,12 @@ video_file_distribution.close()
 print '*' * 60
 print 'Total de usuarios: %s' % len(w)
 print 'Total de videos: %s' % len(q)
+print '*' * 60
 
 ########################################
 # Popula a matriz ######################
 ########################################
 buildMatrix()
-
+populateMatrix()
 ##################################
 
