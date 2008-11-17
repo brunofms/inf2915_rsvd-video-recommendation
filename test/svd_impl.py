@@ -20,7 +20,7 @@ user_index = {}
 video_index = {}
 count_lines = 0
 
-filename = "../data/dataset.txt"
+filename = "../data/dataset_treino.txt"
 
 # Parses de dataset file
 def parseDataSet() :
@@ -30,10 +30,10 @@ def parseDataSet() :
 	for line in fileinput.input(filename):
 		try:
 
-			(user, media) = line.split()
-			view_rate = 1
-
-			mediaUserDict[user][media] = view_rate
+			(user, media, rating) = line.split('|')
+			rating = rating.strip()
+			#print '%s >>>> %s >>>> %s' % (user, media, rating)
+			#mediaUserDict[user][media] = rating
 			user2count[user] = user2count.get(user, 0) + 1
 			video2count[media] = (video2count.get(media, 0)) + 1
 
@@ -44,6 +44,38 @@ def parseDataSet() :
 			pass
 
 	elapsed(inicio)
+
+#builds the matrix
+def buildMatrix():
+	inicio = time.time()
+	print 'building matrix %s ...' % filename
+	for line in fileinput.input(filename):
+		try:
+			(user, media, rating) = line.split('|')
+			rating = rating.strip()
+			midia_matrix[user_index[user]][video_index[media]] = rating
+		except 	Exception, why:
+			pass
+
+	elapsed(inicio)
+
+#builds sparse matrix
+def buildSparseMatrix():
+	linha = ''
+	inicio = time.time()
+	matrix_xls = open("midia_matrix.xls", "w")
+	print 'criando a matriz esparsa...'
+	for users in mediaUserDict.keys():
+	        dict_aux = mediaUserDict[users]
+	        lista = []
+	        for midias_key in dict_aux.keys():
+	                linha = linha + '%d\t' % dict_aux[midias_key]
+	                lista.append(dict_aux[midias_key])
+	        midia_matrix.append(lista)
+	        matrix_xls.write(linha+'\n')
+	        linha = ''
+	elapsed(inicio)
+	matrix_xls.close()
 	
 # Returns elapsed time acording to the start time
 def elapsed(inicio):
@@ -58,13 +90,11 @@ def elapsed(inicio):
 
 parseDataSet()
 
-
 #######################################
 # Cria vetores w e q com chute inicial#
 #######################################
 user_file_distribution = open("user_distribution.xls", "w")
 video_file_distribution = open("video_distribution.xls", "w")
-matrix_xls = open("midia_matrix.xls", "w")
 i = 0
 j = 0
 w = []
@@ -99,28 +129,14 @@ elapsed(inicio)
 user_file_distribution.close()
 video_file_distribution.close()
 
+print '*' * 60
+print 'Total de usuarios: %s' % len(w)
+print 'Total de videos: %s' % len(q)
+
 ########################################
 # Popula a matriz ######################
 ########################################
-linha = ''
-inicio = time.time()
-print 'criando a matriz esparsa...'
+buildMatrix()
 
-for users in mediaUserDict.keys():
-        dict_aux = mediaUserDict[users]
-        lista = []
-        for midias_key in dict_aux.keys():
-                linha = linha + '%d\t' % dict_aux[midias_key]
-                lista.append(dict_aux[midias_key])
-        midia_matrix.append(lista)
-        matrix_xls.write(linha+'\n')
-        linha = ''
-
-
-
-elapsed(inicio)
-matrix_xls.close()
 ##################################
-print '\n'
-print 'Total de usuarios: %s' % len(w)
-print 'Total de videos: %s' % len(q)
+
