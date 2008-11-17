@@ -27,4 +27,4 @@ mediaDict = calculateSimilarItems(mediaUserDict)
 print "838440 - %s" % getMediaTitle(838440)
 
 for similarity, midia_id in mediaDict['838440']:
-	print "%s\t%s" % (midia_id, getMediaTitle(int(midia_id)))
+	print "\t%s - %s" % (midia_id, getMediaTitle(int(midia_id)))
