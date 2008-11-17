@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 
 # Bruno de F. Melo e Souza
 # Gustavo Soares Souza
@@ -7,105 +7,44 @@
 import time
 from collections import defaultdict
 from operator import itemgetter
-import sys, hashlib, fileinput, os
+import sys, fileinput, os
 
-# Returns the main fields from an apache access log file
-def parseLog (input) :
-	import re,string
+file_userdistribution = "new_user_distribution.xls"
+file_videodistribution = "new_video_distribution.xls"
+
+mediaUserDict = defaultdict(dict)
+midia_matrix = []
+user2count = defaultdict(dict)
+video2count = defaultdict(dict)
+user_index = {}
+video_index = {}
+count_lines = 0
+
+filename = "../data/dataset.txt"
+
+# Parses de dataset file
+def parseDataSet() :
+	inicio = time.time()
+	print 'parsing dataset %s ...' % filename
+	# TODO: read from a lot of log files
+	for line in fileinput.input(filename):
+		try:
+
+			(user, media) = line.split()
+			view_rate = 1
+
+			mediaUserDict[user][media] = view_rate
+			user2count[user] = user2count.get(user, 0) + 1
+			video2count[media] = (video2count.get(media, 0)) + 1
+
+		except 	Exception, why:
+	        # count was not a number, so silently
+	        # ignore/discard this line
+			#print "Passing...", why
+			pass
+
+	elapsed(inicio)
 	
-	SB    = "["
-	EB    = "]"
-	IP_SEPR = "- -"
-
-	output = {}
-
-	#clean empty space at the beginning.
-	line = string.lstrip(input)
-	[ip,rest] = string.split(line,IP_SEPR)
-	output['ip_address'] = string.strip(ip)
-
-	#parse the date with the brackets included.
-	s_bracket = string.index(rest,SB)
-	e_bracket = string.index(rest,EB)
-	date_str = string.strip(rest[s_bracket+1:e_bracket])
-	output['date_time'] = date_str
-
-	#parse request string to get method, request and protocol.
-	current_ind  = e_bracket+1
-	request_start = -1
-	request_end = -1
-	magic_flag = 0
-
-	while current_ind < len(rest):
-		if request_start != -1:
-			magic_flag = 1
-		if rest[current_ind] == "\"" and request_start == -1:
-			request_start = current_ind
-		if rest[current_ind] == "\"" and request_start != -1 and magic_flag == 1:
-			request_end = current_ind
-
-		if request_start >= 0 and request_end >= 0:
-			break
-		current_ind = current_ind +1
-
-	get_str = string.strip(rest[request_start+1:request_end])
-	[method,request,protocol] = string.split(get_str," ")
-	output['method']= method
-	output['request'] = request
-	output['protocol'] = protocol
-	
-	#parse midia_id
-	patt = re.compile('_([0-9]{1,6})_')
-	mobj = patt.search(request)
-	output['midia_id'] = mobj.group(1)
-
-	#parse path
-	patt = re.compile('(.*)\?')
-	mobj = patt.search(request)
-	output['file_path'] = mobj.group(1)
-
-	#parse return code
-	rest = string.strip(rest[request_end+1:])
-	ret_code_e_ind = string.index(rest," ")
-	ret_code = rest[:ret_code_e_ind]
-	output['return_code'] = ret_code
-
-	#parse byte sent
-	rest = string.lstrip(rest[ret_code_e_ind+1:])
-	byte_sent_e_ind = string.index(rest," ")
-	byte_sent = rest[:byte_sent_e_ind]
-	output['return_byte'] = byte_sent
-
-	#parse refering url
-	after_byte_sent = rest[byte_sent_e_ind+1:]
-	s_quote_ref_url = string.index(after_byte_sent,"\"")
-	after_byte_sent = after_byte_sent[s_quote_ref_url+1:]
-	e_quote_ref_url = string.index(after_byte_sent,"\"")
-	if e_quote_ref_url-s_quote_ref_url==1:
-		output['refering_url'] = ""
-	else:
-		output['refering_url'] = after_byte_sent[:e_quote_ref_url]
-
-	#parse user agent
-	after_ref_url = after_byte_sent[e_quote_ref_url+1:]
-	s_quote_user_agent = string.index(after_ref_url,"\"")
-	after_ref_url = after_ref_url[s_quote_user_agent+1:]
-	e_quote_user_agent = string.index(after_ref_url,"\"")
-	if e_quote_user_agent - s_quote_user_agent==1:
-		output['user_agent'] = ""
-	else:
-		output['user_agent'] = after_ref_url[:e_quote_user_agent]
-     
-	return output
-
-# Returns the file size of a given media
-def getMediaFileSize (path):
-	# TODO: put on config file
-	mount = '/mnt/filer_producao/flashvideo'
-	file_path = mount + path
-
-	return os.path.getsize(file_path)
-
 # Returns elapsed time acording to the start time
 def elapsed(inicio):
 	print 'done'
@@ -113,72 +52,35 @@ def elapsed(inicio):
 	elapsed = (fim - inicio) / 60
 	print 'duracao: %f min' % elapsed
 	
-# Create media : user : rate dictionary -> Item centric!
-# video = { usuario:gosto, usuario:gosto ... }
-## TO BE IMPORTED
-mediaUserDict = defaultdict(dict)
-media_matrix = []
-user2count = defaultdict(dict)
-video2count = defaultdict(dict)
-user_index = {}
-video_index = {}
+##############
+## MAIN ######
+##############
 
-filename = "../data/logs_flashvideo/new.log"
+parseDataSet()
 
-inicio = time.time()
-print 'reading and parsing file %s ...' % filename
-# TODO: read from a lot of log files
-for line in fileinput.input(filename):
-	try:
-		# TODO: instead of IP + User agent, use only urchin.js utma field
-		# TODO: 'tripao' code nomore! Use REGEXP 
-		result = parseLog(line)
-
-		# retrieving info
-		user = hashlib.md5(result['ip_address'] + result['user_agent']).hexdigest().strip()
-		media = result['midia_id'].strip()
-		#downloaded = float(result['return_byte'].strip())
-		#size = float(getMediaFileSize(result['file_path']))
-
-		#view_rate = downloaded/size
-		view_rate = 1
-
-		# re-generated video adds noise to the dataset
-		if view_rate <= 1:
-			# how much have been downloaded
-			#mediaUserDict[media][user] = view_rate
-			#print '%s\t%s' % (user, media)
-			mediaUserDict[user][media] = view_rate
-			user2count[user] = user2count.get(user, 0) + 1
-			video2count[media] = (video2count.get(media, 0)) + 1
-
-	except 	Exception, why:
-        # count was not a number, so silently
-        # ignore/discard this line
-		#print "Passing...", why
-		pass
-
-elapsed(inicio)
 
 #######################################
 # Cria vetores w e q com chute inicial#
 #######################################
-user_file = open("user_distribution.xls", "w")
-video_file = open("video_distribution.xls", "w")
+user_file_distribution = open("user_distribution.xls", "w")
+video_file_distribution = open("video_distribution.xls", "w")
+matrix_xls = open("midia_matrix.xls", "w")
 i = 0
 j = 0
 w = []
 q = []
-taxa = 0.001
+lrate = 0.001
 initial_guess = 0.1
 
-print 'criando o vetor w inicial'
+print 'criando o vetor w com o chute inicial'
 inicio = time.time()
 
 for user_item in user2count.keys():
 	linha = '%s\t%s\n' % (user_item, user2count[user_item])
-	user_file.write(linha)
+	user_index[user_item] = i
+	user_file_distribution.write(linha)
 	w.append(initial_guess)
+	i = i + 1
 	
 elapsed(inicio)
 
@@ -187,26 +89,111 @@ inicio = time.time()
 
 for video_item in video2count.keys():
 	linha = '%s\t%s\n' % (video_item, video2count[video_item])
-	video_file.write(linha)
+	video_index[video_item] = j
+	video_file_distribution.write(linha)
 	q.append(initial_guess)
+	j = j + 1
 	
 elapsed(inicio)
 
-user_file.close();
-video_file.close();
+user_file_distribution.close()
+video_file_distribution.close()
 
 ########################################
 # Popula a matriz ######################
 ########################################
+linha = ''
 inicio = time.time()
 print 'criando a matriz esparsa...'
+
 for users in mediaUserDict.keys():
         dict_aux = mediaUserDict[users]
         lista = []
         for midias_key in dict_aux.keys():
+                linha = linha + '%d\t' % dict_aux[midias_key]
                 lista.append(dict_aux[midias_key])
-        media_matrix.append(lista)
+        midia_matrix.append(lista)
+        matrix_xls.write(linha+'\n')
+        linha = ''
+
+
+
+elapsed(inicio)
+matrix_xls.close()
+##################################
+print '\n'
+print 'Total de usuarios: %s' % len(w)
+print 'Total de videos: %s' % len(q)
+
+import pdb
+#pdb.set_trace()
+###################
+## BEGING SVD #####
+###################
+svd_log = open("svd.log", "w")
+print 'SVD running...'
+
+##################
+## VETOR W #######
+##################
+inicio = time.time()
+print 'obtendo o vetor w...'
+w_log = open("vetor_w.log", "w")
+err = 0
+for i_aux in range(i):
+	svd_log.write('w[%d] antes: %f\n' % (i_aux, w[i_aux]))
+	for j_aux in range(j):
+		'''print 'j_aux: %d' % j_aux
+		print 'q[j_aux]: %f' % q[j_aux]
+		print 'i_aux: %d' % i_aux
+		print 'w[i_aux]: %f' % w[i_aux]'''
+		Aij = 0
+		try:
+			Aij = midia_matrix[i_aux][j_aux]
+		except Exception:
+			pass
+		#print 'midia_matrix[i_aux][j_aux]: %f' % Aij
+		#print 'erro antes: %f' % err
+		err = err + (Aij - (q[j_aux] * w[i_aux])) * q[j_aux]
+		#print 'erro depois: %f' % err
+	w[i_aux] = w[i_aux] + (lrate * err)
+	svd_log.write('w[%d] depois: %f\n' % (i_aux, w[i_aux]))
+	err = 0
 
 elapsed(inicio)
 
-##################################
+print '*' * 60
+w_log.write('w: \n%s\n' % w)
+w_log.close()
+
+##################
+## VETOR Q #######
+##################
+inicio = time.time()
+print 'obtendo o vetor q...'
+q_log = open("vetor_q.log", "w")
+
+err = 0
+for j_aux in range(j):
+	svd_log.write('q[%d] antes: %f\n' % (j_aux, q[j_aux]))
+	for i_aux in range(i):
+		Aij = 0
+		try:
+			Aij = midia_matrix[i_aux][j_aux]
+		except Exception:
+			pass
+		#print 'midia_matrix[i_aux][j_aux]: %f' % Aij
+		#print 'erro antes: %f' % err
+		err = err + (Aij - (q[j_aux] * w[i_aux])) * w[i_aux]
+		#print 'erro depois: %f' % err
+	q[j_aux] = q[j_aux] + (lrate * err)
+	svd_log.write('q[%d] depois: %f\n' % (j_aux, q[j_aux]))
+	err = 0
+
+elapsed(inicio)
+
+print '*' * 60
+q_log.write('q: \n%s\n' % q)
+q_log.close()
+
+svd_log.close()
