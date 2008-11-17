@@ -10,11 +10,13 @@ import hashlib
 import fileinput
 import os
 import urllib
+import re,string
 
 URI = 'http://webmedia-api.globoi.com/1.0/video/%s'
 
 FLASHVIDEO_LOGS_DIR = '../data/logs_flashvideo'
 RATINGS_FILE = '../data/ratings.txt'
+AVERAGE_RATINGS_FILE = '../data/midia_average_ratings2.txt'
 
 def getMediaAverageRating(midia_id):
 	uri = URI % midia_id
@@ -27,7 +29,6 @@ def getMediaAverageRating(midia_id):
 	return float(soma)/float(qde)
 
 def parseLog (input) :
-	import re,string
 	
 	SB    = "["
 	EB    = "]"
@@ -129,6 +130,22 @@ for line in fileinput.input(RATINGS_FILE):
 		pass
 
 #
+# fulfill average ratings dictionary
+
+av_ratings_dict = defaultdict(dict)
+
+for line in fileinput.input(AVERAGE_RATINGS_FILE):
+	try:
+		patt = re.compile('\"([0-9]{1,6})\".*\"(.*)\"')
+		mobj = patt.search(line)
+
+		av_ratings_dict[mobj.group(1).strip()] = mobj.group(2).strip()
+	except Exception, why:
+		pass
+
+
+
+#
 # fulfill user-media dictionary which ratings for viewed videos
 
 for line in sys.stdin:
@@ -145,8 +162,8 @@ for line in sys.stdin:
 
 		if ratings_dict.has_key(user) and ratings_dict[user].has_key(media):
 			rating = ratings_dict[user][media].strip()
-		else:
-			rating = getMediaAverageRating(media)
+		elif av_ratings_dict.has_key(media):
+			rating = av_ratings_dict[media].strip()
 
 		print "%s|%s|%s" % (user, media, rating)
 
