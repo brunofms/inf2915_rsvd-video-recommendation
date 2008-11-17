@@ -33,7 +33,7 @@ def parseDataSet() :
 			(user, media, rating) = line.split('|')
 			rating = rating.strip()
 			#print '%s >>>> %s >>>> %s' % (user, media, rating)
-			#mediaUserDict[user][media] = rating
+			mediaUserDict[user][media] = rating
 			user2count[user] = user2count.get(user, 0) + 1
 			video2count[media] = (video2count.get(media, 0)) + 1
 
@@ -83,6 +83,8 @@ def populateMatrix():
 
 #builds sparse matrix
 def buildSparseMatrix():
+	#import pdb
+	#pdb.set_trace()
 	linha = ''
 	inicio = time.time()
 	matrix_xls = open("midia_matrix.xls", "w")
@@ -91,7 +93,7 @@ def buildSparseMatrix():
 	        dict_aux = mediaUserDict[users]
 	        lista = []
 	        for midias_key in dict_aux.keys():
-	                linha = linha + '%d\t' % dict_aux[midias_key]
+	                linha = linha + '%f\t' % dict_aux[midias_key]
 	                lista.append(dict_aux[midias_key])
 	        midia_matrix.append(lista)
 	        matrix_xls.write(linha+'\n')
@@ -159,7 +161,7 @@ print '*' * 60
 ########################################
 # Popula a matriz ######################
 ########################################
-buildMatrix()
-populateMatrix()
+buildSparseMatrix()
+#populateMatrix()
 ##################################
 
