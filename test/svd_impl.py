@@ -8,6 +8,7 @@ import time
 from collections import defaultdict
 from operator import itemgetter
 import sys, fileinput, os
+import pdb
 
 file_userdistribution = "new_user_distribution.xls"
 file_videodistribution = "new_video_distribution.xls"
@@ -29,9 +30,9 @@ def parseDataSet() :
 	# TODO: read from a lot of log files
 	for line in fileinput.input(filename):
 		try:
-
+			#pdb.set_trace()
 			(user, media, rating) = line.split('|')
-			rating = rating.strip()
+			rating = float(rating.strip())
 			#print '%s >>>> %s >>>> %s' % (user, media, rating)
 			mediaUserDict[user][media] = rating
 			user2count[user] = user2count.get(user, 0) + 1
@@ -83,7 +84,6 @@ def populateMatrix():
 
 #builds sparse matrix
 def buildSparseMatrix():
-	#import pdb
 	#pdb.set_trace()
 	linha = ''
 	inicio = time.time()
