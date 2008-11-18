@@ -8,32 +8,42 @@ import time
 from collections import defaultdict
 from operator import itemgetter
 import sys, fileinput, os
-
-file_userdistribution = "new_user_distribution.xls"
-file_videodistribution = "new_video_distribution.xls"
+import pdb
+#pdb.set_trace()
 
 mediaUserDict = defaultdict(dict)
-midia_matrix = []
 user2count = defaultdict(dict)
 video2count = defaultdict(dict)
 user_index = {}
 video_index = {}
+######################
+# Parametros do svd ##
+######################
+lrate = 0.001
+initial_guess = 0.1
+w = {}
+q = {}
+lista_variaveis_latente_w = []
+lista_variaveis_latente_q = []
 count_lines = 0
 
-filename = "../data/dataset.txt"
+filename = "../data/dataset_treino.txt"
 
 # Parses de dataset file
-def parseDataSet() :
+def parseDataSet():
 	inicio = time.time()
 	print 'parsing dataset %s ...' % filename
 	# TODO: read from a lot of log files
 	for line in fileinput.input(filename):
 		try:
-
-			(user, media) = line.split()
-			view_rate = 1
-
-			mediaUserDict[user][media] = view_rate
+			#pdb.set_trace()
+			(user, media, rating) = line.split('|')
+			user = user.strip()
+			media = media.strip()
+			rating = rating.strip()
+			
+			rating = int(rating)
+			mediaUserDict[user][media] = rating
 			user2count[user] = user2count.get(user, 0) + 1
 			video2count[media] = (video2count.get(media, 0)) + 1
 
@@ -44,156 +54,110 @@ def parseDataSet() :
 			pass
 
 	elapsed(inicio)
+
+
+def trainData():
+	#######################################
+	# Cria vetores w e q com chute inicial#
+	#######################################
+	#Arquivos para gerarem graficos no excel com a distribuicao dos dados
+	user_file_distribution = open("user_distribution.xls", "w")
+	video_file_distribution = open("video_distribution.xls", "w")
+	i = 0
+	j = 0
+
+	print 'criando o vetor w com o chute inicial'
+	inicio = time.time()
+
+	for user_item in user2count.keys():
+		linha = '%s\t%s\n' % (user_item, user2count[user_item])
+		user_index[user_item] = i
+		user_file_distribution.write(linha)
+		w[user_item] = initial_guess
+		i = i + 1
 	
+	elapsed(inicio)
+
+	print 'criando o vetor q com o chute inicial'
+	inicio = time.time()
+
+	for video_item in video2count.keys():
+		linha = '%s\t%s\n' % (video_item, video2count[video_item])
+		video_index[video_item] = j
+		video_file_distribution.write(linha)
+		q[video_item] = initial_guess
+		j = j + 1
+	
+	elapsed(inicio)
+
+	user_file_distribution.close()
+	video_file_distribution.close()
+
+	print '*' * 60
+	print 'Total de usuarios: %s' % len(w)
+	print 'Total de videos: %s' % len(q)
+	print '*' * 60
+	
+	print 'comecando o treino...'
+	inicio = time.time()
+
+	q_log = open("vetor_q.log", "w")
+	w_log = open("vetor_w.log", "w")
+	lista_variaveis_latente_w.append(w)
+	lista_variaveis_latente_q.append(q)
+	for k in range(20):
+		for i_latente in range(10):
+			err = 0.0
+			print 'obtendo a variavel latente =>>>> %d' % i_latente
+			for user_item in w.keys():
+				for video_item in mediaUserDict[user_item].keys():
+					#print '%s -> %s' % (user_item, video_item)
+					rating = mediaUserDict[user_item][video_item]
+					err = lrate * (rating - predictRating(user_item,video_item))
+					w[user_item] = w[user_item] + (err * q[video_item])
+					q[video_item] = q[video_item] + (err * w[user_item])
+		lista_variaveis_latente_w.append(w)
+		lista_variaveis_latente_q.append(q)
+		w_log.write(str(lista_variaveis_latente_w)+'\n')
+		q_log.write(str(lista_variaveis_latente_q)+'\n')
+		
+	#fim do calculo da variavel latente	
+	q_log.close()
+	w_log.close()
+	elapsed(inicio)
+
+def train(user, midia, rating): pass
+
+def predictRating(user, midia):
+	#print 'predicting rating...'
+	inicio = time.time()
+	_rating = 0.0
+	#print '%d variaveis latentes' % len(lista_variaveis_latente_w)
+	for z in xrange(len(lista_variaveis_latente_w)):
+		_w = lista_variaveis_latente_w[z]
+		_q = lista_variaveis_latente_q[z]
+		_rating = _rating + (_w[user] * _q[midia])
+	#elapsed(inicio)
+	#print '*' * 60
+	return _rating
+
 # Returns elapsed time acording to the start time
 def elapsed(inicio):
 	print 'done'
 	fim = time.time()
 	elapsed = (fim - inicio) / 60
 	print 'duracao: %f min' % elapsed
-	
+
+def main():
+	parseDataSet()
+	trainData()
 ##############
 ## MAIN ######
 ##############
 
-parseDataSet()
-
-
-#######################################
-# Cria vetores w e q com chute inicial#
-#######################################
-user_file_distribution = open("user_distribution.xls", "w")
-video_file_distribution = open("video_distribution.xls", "w")
-matrix_xls = open("midia_matrix.xls", "w")
-i = 0
-j = 0
-w = []
-q = []
-lrate = 0.001
-initial_guess = 0.1
-
-print 'criando o vetor w com o chute inicial'
-inicio = time.time()
-
-for user_item in user2count.keys():
-	linha = '%s\t%s\n' % (user_item, user2count[user_item])
-	user_index[user_item] = i
-	user_file_distribution.write(linha)
-	w.append(initial_guess)
-	i = i + 1
-	
-elapsed(inicio)
-
-print 'criando o vetor q com o chute inicial'
-inicio = time.time()
-
-for video_item in video2count.keys():
-	linha = '%s\t%s\n' % (video_item, video2count[video_item])
-	video_index[video_item] = j
-	video_file_distribution.write(linha)
-	q.append(initial_guess)
-	j = j + 1
-	
-elapsed(inicio)
-
-user_file_distribution.close()
-video_file_distribution.close()
-
-########################################
-# Popula a matriz ######################
-########################################
-linha = ''
-inicio = time.time()
-print 'criando a matriz esparsa...'
-
-for users in mediaUserDict.keys():
-        dict_aux = mediaUserDict[users]
-        lista = []
-        for midias_key in dict_aux.keys():
-                linha = linha + '%d\t' % dict_aux[midias_key]
-                lista.append(dict_aux[midias_key])
-        midia_matrix.append(lista)
-        matrix_xls.write(linha+'\n')
-        linha = ''
+main()
 
 
 
-elapsed(inicio)
-matrix_xls.close()
-##################################
-print '\n'
-print 'Total de usuarios: %s' % len(w)
-print 'Total de videos: %s' % len(q)
 
-import pdb
-#pdb.set_trace()
-###################
-## BEGING SVD #####
-###################
-svd_log = open("svd.log", "w")
-print 'SVD running...'
 
-##################
-## VETOR W #######
-##################
-inicio = time.time()
-print 'obtendo o vetor w...'
-w_log = open("vetor_w.log", "w")
-err = 0
-for i_aux in range(i):
-	svd_log.write('w[%d] antes: %f\n' % (i_aux, w[i_aux]))
-	for j_aux in range(j):
-		'''print 'j_aux: %d' % j_aux
-		print 'q[j_aux]: %f' % q[j_aux]
-		print 'i_aux: %d' % i_aux
-		print 'w[i_aux]: %f' % w[i_aux]'''
-		Aij = 0
-		try:
-			Aij = midia_matrix[i_aux][j_aux]
-		except Exception:
-			pass
-		#print 'midia_matrix[i_aux][j_aux]: %f' % Aij
-		#print 'erro antes: %f' % err
-		err = err + (Aij - (q[j_aux] * w[i_aux])) * q[j_aux]
-		#print 'erro depois: %f' % err
-	w[i_aux] = w[i_aux] + (lrate * err)
-	svd_log.write('w[%d] depois: %f\n' % (i_aux, w[i_aux]))
-	err = 0
-
-elapsed(inicio)
-
-print '*' * 60
-w_log.write('w: \n%s\n' % w)
-w_log.close()
-
-##################
-## VETOR Q #######
-##################
-inicio = time.time()
-print 'obtendo o vetor q...'
-q_log = open("vetor_q.log", "w")
-
-err = 0
-for j_aux in range(j):
-	svd_log.write('q[%d] antes: %f\n' % (j_aux, q[j_aux]))
-	for i_aux in range(i):
-		Aij = 0
-		try:
-			Aij = midia_matrix[i_aux][j_aux]
-		except Exception:
-			pass
-		#print 'midia_matrix[i_aux][j_aux]: %f' % Aij
-		#print 'erro antes: %f' % err
-		err = err + (Aij - (q[j_aux] * w[i_aux])) * w[i_aux]
-		#print 'erro depois: %f' % err
-	q[j_aux] = q[j_aux] + (lrate * err)
-	svd_log.write('q[%d] depois: %f\n' % (j_aux, q[j_aux]))
-	err = 0
-
-elapsed(inicio)
-
-print '*' * 60
-q_log.write('q: \n%s\n' % q)
-q_log.close()
-
-svd_log.close()
