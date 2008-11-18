@@ -8,6 +8,7 @@ import time
 from collections import defaultdict
 from operator import itemgetter
 import sys, fileinput, os
+from copy import copy
 import pdb
 #pdb.set_trace()
 
@@ -21,6 +22,7 @@ video_index = {}
 ######################
 lrate = 0.001
 initial_guess = 0.1
+NUM_VARIAVEL_LATENTE = 30
 w = {}
 q = {}
 lista_variaveis_latente_w = []
@@ -37,7 +39,7 @@ def parseDataSet():
 	for line in fileinput.input(filename):
 		try:
 			#pdb.set_trace()
-			(user, media, rating) = line.split('|')
+			(user, media, rating) = line.split()
 			user = user.strip()
 			media = media.strip()
 			rating = rating.strip()
@@ -105,10 +107,10 @@ def trainData():
 	w_log = open("vetor_w.log", "w")
 	lista_variaveis_latente_w.append(w)
 	lista_variaveis_latente_q.append(q)
-	for k in range(20):
+	for k in range(NUM_VARIAVEL_LATENTE):
+		print 'obtendo a variavel latente =>>>> %d' % k
 		for i_latente in range(10):
 			err = 0.0
-			print 'obtendo a variavel latente =>>>> %d' % i_latente
 			for user_item in w.keys():
 				for video_item in mediaUserDict[user_item].keys():
 					#print '%s -> %s' % (user_item, video_item)
@@ -116,17 +118,15 @@ def trainData():
 					err = lrate * (rating - predictRating(user_item,video_item))
 					w[user_item] = w[user_item] + (err * q[video_item])
 					q[video_item] = q[video_item] + (err * w[user_item])
-		lista_variaveis_latente_w.append(w)
-		lista_variaveis_latente_q.append(q)
-		w_log.write(str(lista_variaveis_latente_w)+'\n')
-		q_log.write(str(lista_variaveis_latente_q)+'\n')
+		lista_variaveis_latente_w.append(copy(w))
+		lista_variaveis_latente_q.append(copy(q))
 		
 	#fim do calculo da variavel latente	
+	w_log.write(str(lista_variaveis_latente_w)+'\n')
+	q_log.write(str(lista_variaveis_latente_q)+'\n')
 	q_log.close()
 	w_log.close()
 	elapsed(inicio)
-
-def train(user, midia, rating): pass
 
 def predictRating(user, midia):
 	#print 'predicting rating...'

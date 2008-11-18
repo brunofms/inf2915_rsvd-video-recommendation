@@ -14,7 +14,7 @@ import pdb
 count_lines = 0
 count_cleaned = 0
 
-filename = "../data/dataset_modelo.txt"
+filename = "../data/dataset_treino.txt"
 cleandataset_filename = "../data/dataset_clean.txt"
 
 # Returns elapsed time acording to the start time
