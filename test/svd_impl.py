@@ -21,12 +21,12 @@ video_index = {}
 ######################
 # Parametros do svd ##
 ######################
-lrate = 0.001
-INITIAL_GUESS = 0.1
+lrate = 0.01
+INITIAL_GUESS = 2
 TEST_DATASET_FILE='../data/dataset_teste.txt'
 TRAIN_DATASET_FILE = "../data/dataset_treino.txt"
-NUM_VARIAVEL_LATENTE = 20
-NUM_PASSOS = 40
+NUM_VARIAVEL_LATENTE = 1
+NUM_PASSOS = 20
 w = {}
 q = {}
 lista_variaveis_latente_w = []
@@ -164,7 +164,7 @@ def testData(_w,_q):
 				predicted = float(_w[user] * _q[media])
 				#print 'rating: %f, predicted: %f' % (rating, predicted)
 				err = err + (rating - predicted)**2
-				print 'err: %f - rating: %f, predicted: %f' % (err, rating, predicted)
+				#print 'err: %f - rating: %f, predicted: %f' % (err, rating, predicted)
 				i = i + 1
 
 		except Exception, why:
