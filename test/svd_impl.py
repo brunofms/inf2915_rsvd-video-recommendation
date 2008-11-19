@@ -26,6 +26,7 @@ INITIAL_GUESS = 0.1
 TEST_DATASET_FILE='../data/dataset_teste.txt'
 TRAIN_DATASET_FILE = "../data/dataset_treino.txt"
 NUM_VARIAVEL_LATENTE = 20
+NUM_PASSOS = 40
 w = {}
 q = {}
 lista_variaveis_latente_w = []
@@ -103,6 +104,7 @@ def trainData():
 	
 	print 'comecando o treino...'
 	print 'variaveis latente: %d' % NUM_VARIAVEL_LATENTE
+	print 'passos: %d' % NUM_PASSOS
 	inicio = time.time()
 
 	q_log = open("vetor_q.log", "w")
@@ -111,7 +113,7 @@ def trainData():
 	lista_variaveis_latente_q.append(q)
 	for k in range(NUM_VARIAVEL_LATENTE):
 		print 'obtendo a variavel latente =>>>> %d' % k
-		for i_latente in range(10):
+		for i_latente in range(NUM_PASSOS):
 			err = 0.0
 			for user_item in w.keys():
 				for video_item in mediaUserDict[user_item].keys():
