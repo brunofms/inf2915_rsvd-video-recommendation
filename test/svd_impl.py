@@ -157,9 +157,9 @@ def testData(_w,_q):
 			media = media.strip()
 			rating = rating.strip()
 			rating = int(rating)
-			print '%s >>> %s >>>> %d' % (user,media,rating)
+			#print '%s >>> %s >>>> %d' % (user,media,rating)
 			if _w.has_key(user) and _q.has_key(media):
-				print '%s >>> %s >>>> %d\n' % (user,media,rating)
+				#print '%s >>> %s >>>> %d\n' % (user,media,rating)
 				predicted = int(_w[user] * _q[media])
 				err = err + (rating - predicted)**2
 				i = i + 1
