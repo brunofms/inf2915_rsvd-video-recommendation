@@ -10,6 +10,7 @@ from operator import itemgetter
 import sys, fileinput, os
 from copy import copy
 import pdb
+from math import *
 #pdb.set_trace()
 
 mediaUserDict = defaultdict(dict)
@@ -22,6 +23,8 @@ video_index = {}
 ######################
 lrate = 0.001
 initial_guess = 0.1
+TEST_DATASET_FILE='../data/dataset_teste.txt'
+TRAIN_DATASET_FILE = "../data/dataset_treino.txt"
 NUM_VARIAVEL_LATENTE = 30
 w = {}
 q = {}
@@ -29,14 +32,12 @@ lista_variaveis_latente_w = []
 lista_variaveis_latente_q = []
 count_lines = 0
 
-filename = "../data/dataset_treino.txt"
-
 # Parses de dataset file
 def parseDataSet():
 	inicio = time.time()
-	print 'parsing dataset %s ...' % filename
+	print 'parsing dataset %s ...' % TRAIN_DATASET_FILE
 	# TODO: read from a lot of log files
-	for line in fileinput.input(filename):
+	for line in fileinput.input(TRAIN_DATASET_FILE):
 		try:
 			#pdb.set_trace()
 			(user, media, rating) = line.split()
@@ -141,6 +142,33 @@ def predictRating(user, midia):
 	#print '*' * 60
 	return _rating
 
+def testData(_w,_q):
+	inicio = time.time()
+	print 'iniciando o teste...'
+	i=0
+	err = 0.0
+    # le o dataset de testes
+	for line in fileinput.input(TEST_DATASET_FILE):
+		try:
+			line.strip()
+			user,media,rating = line.split('\t')
+			user = user.strip()
+			media = media.strip()
+			rating = int(rating.strip())
+
+			if _w.has_key(user) and _q.has_key(media):
+				predicted = int(_w[user] * _q[media])
+				err = err + (rating - predicted)**2
+				i += 1
+
+		except Exception, why:
+			pass
+
+	mse = err/i
+	rmse = sqrt(mse)
+	elapsed(inicio)
+	return rmse
+	
 # Returns elapsed time acording to the start time
 def elapsed(inicio):
 	print 'done'
@@ -151,6 +179,9 @@ def elapsed(inicio):
 def main():
 	parseDataSet()
 	trainData()
+	rmse = testData(w,q)
+	print 'rmse: %f' % rmse
+	
 ##############
 ## MAIN ######
 ##############
