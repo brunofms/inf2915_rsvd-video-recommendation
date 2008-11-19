@@ -1,7 +1,7 @@
 from math import *
 
 # test dataset file path
-TEST_DATASET_FILE=''
+TEST_DATASET_FILE='../data/dataset_teste.txt'
 
 # Returns the RMSE of the proposed train process
 def testData(w,q): 
