@@ -25,7 +25,7 @@ lrate = 0.001
 INITIAL_GUESS = 0.1
 TEST_DATASET_FILE='../data/dataset_teste.txt'
 TRAIN_DATASET_FILE = "../data/dataset_treino.txt"
-NUM_VARIAVEL_LATENTE = 5
+NUM_VARIAVEL_LATENTE = 10
 w = {}
 q = {}
 lista_variaveis_latente_w = []
@@ -152,16 +152,17 @@ def testData(_w,_q):
 	for line in fileinput.input(TEST_DATASET_FILE):
 		try:
 			line.strip()
-			user,media,rating = line.split('\t')
+			user,media,rating = line.split()
 			user = user.strip()
 			media = media.strip()
 			rating = rating.strip()
-			rating = int(rating)
-			#print '%s >>> %s >>>> %d' % (user,media,rating)
+			rating = float(rating)
+			
 			if _w.has_key(user) and _q.has_key(media):
-				#print '%s >>> %s >>>> %d\n' % (user,media,rating)
-				predicted = int(_w[user] * _q[media])
+				predicted = float(_w[user] * _q[media])
+				print 'rating: %f, predicted: %f' % (rating, predicted)
 				err = err + (rating - predicted)**2
+				print 'err: %f - rating: %f, predicted: %f' % (err, rating, predicted)
 				i = i + 1
 
 		except Exception, why:
@@ -170,6 +171,10 @@ def testData(_w,_q):
 	mse = err / i
 	rmse = sqrt(mse)
 	elapsed(inicio)
+
+	print '************************************************************'	
+	print 'Total de usuarios com rating estimado: %d' % i
+
 	return rmse
 	
 # Returns elapsed time acording to the start time
@@ -183,7 +188,7 @@ def main():
 	parseDataSet()
 	trainData()
 	rmse = testData(w,q)
-	print 'rmse: %f' % rmse
+	print '>>>>> RMSE: %f' % rmse
 	
 ##############
 ## MAIN ######
