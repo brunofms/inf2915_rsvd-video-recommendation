@@ -22,10 +22,10 @@ video_index = {}
 # Parametros do svd ##
 ######################
 lrate = 0.001
-initial_guess = 0.1
+INITIAL_GUESS = 0.1
 TEST_DATASET_FILE='../data/dataset_teste.txt'
 TRAIN_DATASET_FILE = "../data/dataset_treino.txt"
-NUM_VARIAVEL_LATENTE = 30
+NUM_VARIAVEL_LATENTE = 5
 w = {}
 q = {}
 lista_variaveis_latente_w = []
@@ -76,7 +76,7 @@ def trainData():
 		linha = '%s\t%s\n' % (user_item, user2count[user_item])
 		user_index[user_item] = i
 		user_file_distribution.write(linha)
-		w[user_item] = initial_guess
+		w[user_item] = INITIAL_GUESS
 		i = i + 1
 	
 	elapsed(inicio)
@@ -88,7 +88,7 @@ def trainData():
 		linha = '%s\t%s\n' % (video_item, video2count[video_item])
 		video_index[video_item] = j
 		video_file_distribution.write(linha)
-		q[video_item] = initial_guess
+		q[video_item] = INITIAL_GUESS
 		j = j + 1
 	
 	elapsed(inicio)
@@ -102,6 +102,7 @@ def trainData():
 	print '*' * 60
 	
 	print 'comecando o treino...'
+	print 'variaveis latente: %d' % NUM_VARIAVEL_LATENTE
 	inicio = time.time()
 
 	q_log = open("vetor_q.log", "w")
@@ -131,7 +132,7 @@ def trainData():
 
 def predictRating(user, midia):
 	#print 'predicting rating...'
-	inicio = time.time()
+	#inicio = time.time()
 	_rating = 0.0
 	#print '%d variaveis latentes' % len(lista_variaveis_latente_w)
 	for z in xrange(len(lista_variaveis_latente_w)):
@@ -154,12 +155,14 @@ def testData(_w,_q):
 			user,media,rating = line.split('\t')
 			user = user.strip()
 			media = media.strip()
-			rating = int(rating.strip())
-
+			rating = rating.strip()
+			rating = int(rating)
+			print '%s >>> %s >>>> %d' % (user,media,rating)
 			if _w.has_key(user) and _q.has_key(media):
+				print '%s >>> %s >>>> %d\n' % (user,media,rating)
 				predicted = int(_w[user] * _q[media])
 				err = err + (rating - predicted)**2
-				i += 1
+				i = i + 1
 
 		except Exception, why:
 			pass
