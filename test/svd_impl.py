@@ -25,7 +25,7 @@ lrate = 0.001
 INITIAL_GUESS = 0.1
 TEST_DATASET_FILE='../data/dataset_teste.txt'
 TRAIN_DATASET_FILE = "../data/dataset_treino.txt"
-NUM_VARIAVEL_LATENTE = 10
+NUM_VARIAVEL_LATENTE = 20
 w = {}
 q = {}
 lista_variaveis_latente_w = []
@@ -156,11 +156,11 @@ def testData(_w,_q):
 			user = user.strip()
 			media = media.strip()
 			rating = rating.strip()
-			rating = float(rating)
+			rating = int(rating)
 			
 			if _w.has_key(user) and _q.has_key(media):
 				predicted = float(_w[user] * _q[media])
-				print 'rating: %f, predicted: %f' % (rating, predicted)
+				#print 'rating: %f, predicted: %f' % (rating, predicted)
 				err = err + (rating - predicted)**2
 				print 'err: %f - rating: %f, predicted: %f' % (err, rating, predicted)
 				i = i + 1
