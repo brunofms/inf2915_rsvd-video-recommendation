@@ -164,7 +164,7 @@ def testData(_w,_q):
 		except Exception, why:
 			pass
 
-	mse = err/i
+	mse = err / i
 	rmse = sqrt(mse)
 	elapsed(inicio)
 	return rmse
