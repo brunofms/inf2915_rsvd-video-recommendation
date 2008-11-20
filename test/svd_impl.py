@@ -21,12 +21,17 @@ video_index = {}
 ######################
 # Parametros do svd ##
 ######################
-TEST_DATASET_FILE='../data/dataset_teste.txt'
-TRAIN_DATASET_FILE = "../data/dataset_treino.txt"
+#TEST_DATASET_FILE = '../data/teste/views/dataset_1.txt'
+TEST_DATASET_FILE = '../data/teste/ratings/dataset_teste.txt'
+#TEST_DATASET_FILE = '../data/dataset_treino_netflix.txt'
+#TRAIN_DATASET_FILE = '../data/treino/views/dataset_0.txt'
+TRAIN_DATASET_FILE = '../data/treino/ratings/dataset_treino.txt'
+#TRAIN_DATASET_FILE = '../data/dataset_treino_netflix.txt'
 lrate = 0.001
-INITIAL_GUESS = 2
-NUM_VARIAVEL_LATENTE = 1
-NUM_PASSOS = 30
+INITIAL_GUESS = 0.1
+NUM_VARIAVEL_LATENTE = 10
+NUM_PASSOS = 10
+MIN_IMPROVEMENT = 0.0001
 w = {}
 q = {}
 lista_variaveis_latente_w = []
@@ -111,19 +116,38 @@ def trainData():
 
 	q_log = open("vetor_q.log", "w")
 	w_log = open("vetor_w.log", "w")
-	lista_variaveis_latente_w.append(w)
-	lista_variaveis_latente_q.append(q)
+	rmse_last=1000000
 	for k in range(NUM_VARIAVEL_LATENTE):
 		print 'obtendo a variavel latente =>>>> %d' % k
+		rmse_last=1000
 		for i_passos in range(NUM_PASSOS):
-			err = 0.0
+			aux = 0
+			sq = 0
 			for user_item in w.keys():
 				for video_item in mediaUserDict[user_item].keys():
 					#print '%s -> %s' % (user_item, video_item)
 					rating = mediaUserDict[user_item][video_item]
-					err = lrate * (rating - predictRating(user_item,video_item))
-					w[user_item] = w[user_item] + (err * q[video_item])
-					q[video_item] = q[video_item] + (err * w[user_item])
+					aux = aux + 1
+					if i_passos > 0:
+						#err = lrate * (rating - predictRating(user_item,video_item))
+						err = rating - predictRating(user_item,video_item)
+					else:
+						#err = lrate * (rating -  (w[user_item]*q[video_item]))
+						err = rating - (w[user_item] * q[video_item])
+					#w[user_item] = w[user_item] + (err * q[video_item])
+					#q[video_item] = q[video_item] + (err * w[user_item])
+					sq = sq + (err**2)
+					lerr = lrate * err
+					tmp = lerr * w[user_item]
+					w[user_item] = w[user_item] + (lerr * q[video_item])
+					q[video_item] = q[video_item] + tmp
+			rmse = sqrt(sq/aux)
+			print 'passo %d - RMSE: %f = sqrt(%f/%d)' % (i_passos+1, rmse, sq, aux)
+			if rmse > rmse_last - MIN_IMPROVEMENT:
+				break
+			else:
+				rmse_last = rmse
+			
 		lista_variaveis_latente_w.append(copy(w))
 		lista_variaveis_latente_q.append(copy(q))
 		
@@ -137,12 +161,16 @@ def trainData():
 def predictRating(user, midia):
 	#print 'predicting rating...'
 	#inicio = time.time()
-	_rating = 0.0
+	_rating = 1.0
 	#print '%d variaveis latentes' % len(lista_variaveis_latente_w)
 	for z in xrange(len(lista_variaveis_latente_w)):
 		_w = lista_variaveis_latente_w[z]
 		_q = lista_variaveis_latente_q[z]
 		_rating = _rating + (_w[user] * _q[midia])
+		if _rating > 5:
+			_rating = 5
+		elif _rating < 1:
+			_rating = 1
 	#elapsed(inicio)
 	#print '*' * 60
 	return _rating
@@ -166,7 +194,8 @@ def testData(_w,_q):
 				predicted = float(_w[user] * _q[media])
 				#print 'rating: %f, predicted: %f' % (rating, predicted)
 				err = err + (rating - predicted)**2
-				#print 'err: %f - rating: %f, predicted: %f' % (err, rating, predicted)
+				if (i%300) == 0:
+					print 'err: %f - rating: %f, predicted: %f = %f * %f' % (err, rating, predicted, _w[user], _q[media])
 				i = i + 1
 
 		except Exception, why:
@@ -177,6 +206,7 @@ def testData(_w,_q):
 	elapsed(inicio)
 
 	print '************************************************************'	
+	print 'MSE: %f' % mse
 	print 'Total de usuarios com rating estimado: %d' % i
 
 	return rmse
@@ -203,8 +233,3 @@ def main():
 ##############
 
 main()
-
-
-
-
-
