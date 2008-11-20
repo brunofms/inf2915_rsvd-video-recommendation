@@ -25,8 +25,8 @@ TEST_DATASET_FILE='../data/dataset_teste.txt'
 TRAIN_DATASET_FILE = "../data/dataset_treino.txt"
 lrate = 0.001
 INITIAL_GUESS = 2
-NUM_VARIAVEL_LATENTE = 10
-NUM_PASSOS = 10
+NUM_VARIAVEL_LATENTE = 1
+NUM_PASSOS = 30
 w = {}
 q = {}
 lista_variaveis_latente_w = []
@@ -111,8 +111,8 @@ def trainData():
 
 	q_log = open("vetor_q.log", "w")
 	w_log = open("vetor_w.log", "w")
-	lista_variaveis_latente_w.append(copy(w))
-	lista_variaveis_latente_q.append(copy(q))
+	lista_variaveis_latente_w.append(w)
+	lista_variaveis_latente_q.append(q)
 	for k in range(NUM_VARIAVEL_LATENTE):
 		print 'obtendo a variavel latente =>>>> %d' % k
 		for i_passos in range(NUM_PASSOS):
@@ -192,8 +192,11 @@ def main():
 	parseDataSet()
 	trainData()
 	_rmse = testData(w,q)
+	print 'lrate: %f' % lrate
+	print 'chute inicial: %f' % INITIAL_GUESS
+	print 'variaveis latente: %d' % NUM_VARIAVEL_LATENTE
+	print 'passos: %d' % NUM_PASSOS
 	print '>>>>> RMSE: %f' % _rmse
-	print _rmse
 	
 ##############
 ## MAIN ######
