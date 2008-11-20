@@ -167,6 +167,7 @@ def predictRating(user, midia):
 		_w = lista_variaveis_latente_w[z]
 		_q = lista_variaveis_latente_q[z]
 		_rating = _rating + (_w[user] * _q[midia])
+		# http://www.timelydevelopment.com/demos/NetflixPrize.aspx
 		if _rating > 5:
 			_rating = 5
 		elif _rating < 1:
