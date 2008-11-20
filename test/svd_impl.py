@@ -21,12 +21,12 @@ video_index = {}
 ######################
 # Parametros do svd ##
 ######################
-lrate = 0.01
-INITIAL_GUESS = 2
 TEST_DATASET_FILE='../data/dataset_teste.txt'
 TRAIN_DATASET_FILE = "../data/dataset_treino.txt"
-NUM_VARIAVEL_LATENTE = 1
-NUM_PASSOS = 20
+lrate = 0.001
+INITIAL_GUESS = 2
+NUM_VARIAVEL_LATENTE = 10
+NUM_PASSOS = 10
 w = {}
 q = {}
 lista_variaveis_latente_w = []
@@ -103,17 +103,19 @@ def trainData():
 	print '*' * 60
 	
 	print 'comecando o treino...'
+	print 'lrate: %f' % lrate
+	print 'chute inicial: %f' % INITIAL_GUESS
 	print 'variaveis latente: %d' % NUM_VARIAVEL_LATENTE
 	print 'passos: %d' % NUM_PASSOS
 	inicio = time.time()
 
 	q_log = open("vetor_q.log", "w")
 	w_log = open("vetor_w.log", "w")
-	lista_variaveis_latente_w.append(w)
-	lista_variaveis_latente_q.append(q)
+	lista_variaveis_latente_w.append(copy(w))
+	lista_variaveis_latente_q.append(copy(q))
 	for k in range(NUM_VARIAVEL_LATENTE):
 		print 'obtendo a variavel latente =>>>> %d' % k
-		for i_latente in range(NUM_PASSOS):
+		for i_passos in range(NUM_PASSOS):
 			err = 0.0
 			for user_item in w.keys():
 				for video_item in mediaUserDict[user_item].keys():
@@ -126,8 +128,8 @@ def trainData():
 		lista_variaveis_latente_q.append(copy(q))
 		
 	#fim do calculo da variavel latente	
-	w_log.write(str(lista_variaveis_latente_w)+'\n')
-	q_log.write(str(lista_variaveis_latente_q)+'\n')
+	#w_log.write(str(lista_variaveis_latente_w)+'\n')
+	#q_log.write(str(lista_variaveis_latente_q)+'\n')
 	q_log.close()
 	w_log.close()
 	elapsed(inicio)
@@ -189,8 +191,9 @@ def elapsed(inicio):
 def main():
 	parseDataSet()
 	trainData()
-	rmse = testData(w,q)
-	print '>>>>> RMSE: %f' % rmse
+	_rmse = testData(w,q)
+	print '>>>>> RMSE: %f' % _rmse
+	print _rmse
 	
 ##############
 ## MAIN ######
