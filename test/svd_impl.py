@@ -22,21 +22,22 @@ video_index = {}
 # Parametros do svd ##
 ######################
 #TEST_DATASET_FILE = '../data/teste/views/dataset_1.txt'
-TEST_DATASET_FILE = '../data/teste/ratings/dataset_teste.txt'
+TEST_DATASET_FILE = '../data/dataset_teste.txt'
 #TEST_DATASET_FILE = '../data/dataset_treino_netflix.txt'
 #TRAIN_DATASET_FILE = '../data/treino/views/dataset_0.txt'
-TRAIN_DATASET_FILE = '../data/treino/ratings/dataset_treino.txt'
+TRAIN_DATASET_FILE = '../data/dataset_treino.txt'
 #TRAIN_DATASET_FILE = '../data/dataset_treino_netflix.txt'
-lrate = 0.001
-INITIAL_GUESS = 0.1
-NUM_VARIAVEL_LATENTE = 10
-NUM_PASSOS = 10
+
 MIN_IMPROVEMENT = 0.0001
-w = {}
-q = {}
-lista_variaveis_latente_w = []
-lista_variaveis_latente_q = []
-count_lines = 0
+
+#lrate = 0.001
+#INITIAL_GUESS = 0.1
+#NUM_VARIAVEL_LATENTE = 20
+#NUM_PASSOS = 20
+#w = {}
+#q = {}
+#lista_variaveis_latente_w = []
+#lista_variaveis_latente_q = []
 
 # Parses de dataset file
 def parseDataSet():
@@ -65,7 +66,7 @@ def parseDataSet():
 	elapsed(inicio)
 
 
-def trainData():
+def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, lista_variaveis_latente_q, lista_variaveis_latente_w):
 	#######################################
 	# Cria vetores w e q com chute inicial#
 	#######################################
@@ -76,7 +77,7 @@ def trainData():
 	j = 0
 
 	print 'criando o vetor w com o chute inicial'
-	inicio = time.time()
+	#inicio = time.time()
 
 	for user_item in user2count.keys():
 		linha = '%s\t%s\n' % (user_item, user2count[user_item])
@@ -85,7 +86,7 @@ def trainData():
 		w[user_item] = INITIAL_GUESS
 		i = i + 1
 	
-	elapsed(inicio)
+	#elapsed(inicio)
 
 	print 'criando o vetor q com o chute inicial'
 	inicio = time.time()
@@ -108,14 +109,10 @@ def trainData():
 	print '*' * 60
 	
 	print 'comecando o treino...'
-	print 'lrate: %f' % lrate
-	print 'chute inicial: %f' % INITIAL_GUESS
-	print 'variaveis latente: %d' % NUM_VARIAVEL_LATENTE
-	print 'passos: %d' % NUM_PASSOS
 	inicio = time.time()
 
-	q_log = open("vetor_q.log", "w")
-	w_log = open("vetor_w.log", "w")
+	#q_log = open("vetor_q.log", "w")
+	#w_log = open("vetor_w.log", "w")
 	rmse_last=1000000
 	for k in range(NUM_VARIAVEL_LATENTE):
 		print 'obtendo a variavel latente =>>>> %d' % k
@@ -130,7 +127,7 @@ def trainData():
 					aux = aux + 1
 					if i_passos > 0:
 						#err = lrate * (rating - predictRating(user_item,video_item))
-						err = rating - predictRating(user_item,video_item)
+						err = rating - predictRating(user_item,video_item, lista_variaveis_latente_w, lista_variaveis_latente_q)
 					else:
 						#err = lrate * (rating -  (w[user_item]*q[video_item]))
 						err = rating - (w[user_item] * q[video_item])
@@ -154,11 +151,11 @@ def trainData():
 	#fim do calculo da variavel latente	
 	#w_log.write(str(lista_variaveis_latente_w)+'\n')
 	#q_log.write(str(lista_variaveis_latente_q)+'\n')
-	q_log.close()
-	w_log.close()
+	#q_log.close()
+	#w_log.close()
 	elapsed(inicio)
 
-def predictRating(user, midia):
+def predictRating(user, midia, lista_variaveis_latente_w, lista_variaveis_latente_q):
 	#print 'predicting rating...'
 	#inicio = time.time()
 	_rating = 1.0
@@ -228,9 +225,60 @@ def main():
 	print 'variaveis latente: %d' % NUM_VARIAVEL_LATENTE
 	print 'passos: %d' % NUM_PASSOS
 	print '>>>>> RMSE: %f' % _rmse
+
+def main2(chute=0.1, variaveis_latentes=10, passos=20, lrate=0.001):
+	inicio = time.time()
+	lrate = 0.001
+	INITIAL_GUESS = chute
+	NUM_VARIAVEL_LATENTE = variaveis_latentes
+	NUM_PASSOS = passos
+	MIN_IMPROVEMENT = 0.0001
+	w = {}
+	q = {}
+	lista_variaveis_latente_w = []
+	lista_variaveis_latente_q = []
 	
+	#Chama os metodos
+	trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, lista_variaveis_latente_q, lista_variaveis_latente_w)
+	rmse = testData(w,q)
+	
+	fim = time.time()
+	elapsed = (fim - inicio) / 60
+	
+	return (lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, rmse, elapsed)
+
 ##############
 ## MAIN ######
 ##############
 
-main()
+#main()
+inicio = time.time()
+parseDataSet()
+RESULT_FILE = "result.xls"
+result_log = open(RESULT_FILE, "w")
+result_log.write('LRATE\tCHUTE\tVARIAVEIS_LATENTES\tPASSOS\tRMSE\tELAPSED\n')
+
+MAXIMO_LATENTES = 180
+PASSOS_AUX = 30
+CHUTE_AUX = 0.1
+STEP = 0
+print 'Maximo de variaveis latentes: %d' % MAXIMO_LATENTES
+while (1):
+	STEP = STEP + 10
+	if STEP > MAXIMO_LATENTES:
+		print 'break'
+		break
+	(lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, rmse, tempo_decorrido) = main2(CHUTE_AUX, STEP, PASSOS_AUX, 0.001)
+	result_log.write('%f\t%f\t%d\t%d\t%f\t%f\n' % (lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, rmse, tempo_decorrido))
+	
+	print 'lrate: %f' % lrate
+	print 'chute inicial: %f' % INITIAL_GUESS
+	print 'variaveis latente: %d' % NUM_VARIAVEL_LATENTE
+	print 'passos: %d' % NUM_PASSOS
+	print 'RMSE: %f' % rmse
+	print 'tempo de execucao: %f min' % tempo_decorrido
+	print '*' * 60
+
+result_log.close()
+elapsed(inicio)
+print '%s escrito' % RESULT_FILE
