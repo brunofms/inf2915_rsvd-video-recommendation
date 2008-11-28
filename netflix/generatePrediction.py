@@ -32,10 +32,9 @@ MIN_IMPROVEMENT = 0.0001
 def parseDataSet():
 	inicio = time.time()
 	print 'parsing dataset %s ...' % TEST_DATASET_FILE
-	fileIN = open(sys.argv[1], "r")
+	fileIN = open(TEST_DATASET_FILE, "r")
 	line = fileIN.readline()
 	while line:
-		print line
 		try:
 			#pdb.set_trace()
 			(user, media, rating) = line.split()
