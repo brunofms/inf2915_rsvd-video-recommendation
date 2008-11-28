@@ -22,7 +22,8 @@ video_index = {}
 ######################
 # Parametros do svd ##
 ######################
-TEST_DATASET_FILE = '../data/netflix/dataset.txt'
+TEST_DATASET_FILE = '../data/netflix/dataset_treino.txt'
+#TEST_DATASET_FILE = '../data/netflix/dataset.txt'
 TRAIN_DATASET_FILE = '../data/netflix/probe_parsed.txt'
 
 MIN_IMPROVEMENT = 0.0001
@@ -30,9 +31,9 @@ MIN_IMPROVEMENT = 0.0001
 # Parses de dataset file
 def parseDataSet():
 	inicio = time.time()
-	print 'parsing dataset %s ...' % TRAIN_DATASET_FILE
+	print 'parsing dataset %s ...' % TEST_DATASET_FILE
 	# TODO: read from a lot of log files
-	for line in fileinput.input(TRAIN_DATASET_FILE):
+	for line in fileinput.input(TEST_DATASET_FILE):
 		try:
 			#pdb.set_trace()
 			(user, media, rating) = line.split()
@@ -48,7 +49,7 @@ def parseDataSet():
 		except 	Exception, why:
 	        # count was not a number, so silently
 	        # ignore/discard this line
-			#print "Passing...", why
+			print "Passing...", why
 			pass
 
 	elapsed(inicio)
@@ -153,7 +154,7 @@ def testData(_w,_q):
 	i=0
 	err = 0.0
     # le o dataset de testes
-	for line in fileinput.input(TEST_DATASET_FILE):
+	for line in fileinput.input(TRAIN_DATASET_FILE):
 		try:
 			line.strip()
 			user,media = line.split('|')
@@ -198,18 +199,22 @@ def main2(chute=0.1, variaveis_latentes=10, passos=20, lrate=0.001):
 	
 	#Chama os metodos
 	trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, lista_variaveis_latente_q, lista_variaveis_latente_w)
+	print 'testing data...'
 	testData(w,q)
+	print 'done'
+	
 	prediction_file = open("predicted_glb_ml.txt", "w")
 	for user_item in userRatingDict.keys():
 		prediction_file.write('%s:\n' % user_item)
 		for video_item in userRatingDict[user_item].keys():
-			print '%s\t%f\t%s\n' % (user_item, video_item, userRatingDict[user_item][video_item])
+			print '%s\t%s\t%1.2f' % (user_item, video_item, userRatingDict[user_item][video_item])
 			prediction_file.write('%f\n' % userRatingDict[user_item][video_item])
+			prediction_file.flush()
 	prediction_file.close()
 	fim = time.time()
 	elapsed = (fim - inicio) / 60
 	
-	return (lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, rmse, elapsed)
+	return (lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, elapsed)
 
 ##############
 ## MAIN ######
@@ -222,26 +227,24 @@ RESULT_FILE = "result.xls"
 result_log = open(RESULT_FILE, "w")
 result_log.write('LRATE\tCHUTE\tVARIAVEIS_LATENTES\tPASSOS\tRMSE\tELAPSED\n')
 
-MAXIMO_LATENTES = 1
+MAXIMO_LATENTES = 10
 PASSOS_AUX = 1
 CHUTE_AUX = 0.1
 STEP = 0
 print 'Maximo de variaveis latentes: %d' % MAXIMO_LATENTES
-while (1):
-	STEP = STEP + 10
-	if STEP > MAXIMO_LATENTES:
-		print 'break'
-		break
-	(lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, rmse, tempo_decorrido) = main2(CHUTE_AUX, STEP, PASSOS_AUX, 0.001)
-	result_log.write('%f\t%f\t%d\t%d\t%f\t%f\n' % (lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, rmse, tempo_decorrido))
-	
-	print 'lrate: %f' % lrate
-	print 'chute inicial: %f' % INITIAL_GUESS
-	print 'variaveis latente: %d' % NUM_VARIAVEL_LATENTE
-	print 'passos: %d' % NUM_PASSOS
-	print 'RMSE: %f' % rmse
-	print 'tempo de execucao: %f min' % tempo_decorrido
-	print '*' * 60
+
+(lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, rmse, tempo_decorrido) = main2(CHUTE_AUX, MAXIMO_LATENTES, PASSOS_AUX, 0.001)
+
+result_log.write('%f\t%f\t%d\t%d\t%f\t%f\n' % (lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, rmse, tempo_decorrido))
+
+print 'lrate: %f' % lrate
+print 'chute inicial: %f' % INITIAL_GUESS
+print 'variaveis latente: %d' % NUM_VARIAVEL_LATENTE
+print 'passos: %d' % NUM_PASSOS
+print 'RMSE: %f' % rmse
+print 'tempo de execucao: %f min' % tempo_decorrido
+print '*' * 60
+
 
 result_log.close()
 elapsed(inicio)
