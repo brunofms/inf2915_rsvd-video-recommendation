@@ -208,7 +208,7 @@ def main2(chute=0.1, variaveis_latentes=10, passos=20, lrate=0.001):
 		prediction_file.write('%s:\n' % user_item)
 		for video_item in userRatingDict[user_item].keys():
 			print '%s\t%s\t%1.2f' % (user_item, video_item, userRatingDict[user_item][video_item])
-			prediction_file.write('%f\n' % userRatingDict[user_item][video_item])
+			prediction_file.write('%1.2f\n' % userRatingDict[user_item][video_item])
 			prediction_file.flush()
 	prediction_file.close()
 	fim = time.time()
@@ -226,16 +226,15 @@ parseDataSet()
 RESULT_FILE = "result.xls"
 result_log = open(RESULT_FILE, "w")
 result_log.write('LRATE\tCHUTE\tVARIAVEIS_LATENTES\tPASSOS\tRMSE\tELAPSED\n')
+result_log.flush()
 
-MAXIMO_LATENTES = 10
+MAXIMO_LATENTES = 5
 PASSOS_AUX = 1
 CHUTE_AUX = 0.1
 STEP = 0
 print 'Maximo de variaveis latentes: %d' % MAXIMO_LATENTES
 
-(lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, rmse, tempo_decorrido) = main2(CHUTE_AUX, MAXIMO_LATENTES, PASSOS_AUX, 0.001)
-
-result_log.write('%f\t%f\t%d\t%d\t%f\t%f\n' % (lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, rmse, tempo_decorrido))
+(lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, tempo_decorrido) = main2(CHUTE_AUX, MAXIMO_LATENTES, PASSOS_AUX, 0.001)
 
 print 'lrate: %f' % lrate
 print 'chute inicial: %f' % INITIAL_GUESS
