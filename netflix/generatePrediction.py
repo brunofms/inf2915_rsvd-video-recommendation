@@ -240,7 +240,6 @@ print 'lrate: %f' % lrate
 print 'chute inicial: %f' % INITIAL_GUESS
 print 'variaveis latente: %d' % NUM_VARIAVEL_LATENTE
 print 'passos: %d' % NUM_PASSOS
-print 'RMSE: %f' % rmse
 print 'tempo de execucao: %f min' % tempo_decorrido
 print '*' * 60
 
