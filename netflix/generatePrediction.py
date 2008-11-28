@@ -16,6 +16,7 @@ from math import *
 mediaUserDict = defaultdict(dict)
 userRatingDict = defaultdict(dict)
 video2count = defaultdict(dict)
+user2count = defaultdict(dict)
 
 ######################
 # Parametros do svd ##
@@ -25,6 +26,15 @@ TEST_DATASET_FILE = '../data/netflix/dataset_treino.txt'
 TRAIN_DATASET_FILE = '../data/netflix/probe_parsed.txt'
 
 MIN_IMPROVEMENT = 0.0001
+
+#populate matrix
+def addMatrix(user, media, rating):
+	mediaUserDict[user][media] = rating
+
+#gets ratings from matrix
+def getRating(user, media):
+	rating = mediaUserDict[user].get(media, 0)
+	return rating
 
 # Parses de dataset file
 def parseDataSet():
@@ -42,8 +52,9 @@ def parseDataSet():
 			rating = rating.strip()
 			
 			rating = int(rating)
-			mediaUserDict[user][media] = rating
+			addMatrix(user, media, rating)
 			video2count[media] = 1
+			user2count[user] = 1
 
 		except 	Exception, why:
 	        # count was not a number, so silently
@@ -65,7 +76,7 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 
 	print 'criando o vetor w com o chute inicial'
 
-	for user_item in mediaUserDict.keys():
+	for user_item in user2count.keys():
 		w[user_item] = INITIAL_GUESS
 		i = i + 1
 
@@ -81,37 +92,53 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 	print '*' * 60
 	print 'Total de usuarios: %s' % len(w)
 	print 'Total de videos: %s' % len(q)
+	rse_max = 5.0 * 5.0 * len(q)
+	print 'RSEMAX: %f' % rse_max
 	print '*' * 60
 	
 	print 'comecando o treino...'
 	inicio = time.time()
 
 	rmse_last=1000000
+	
 	for k in range(NUM_VARIAVEL_LATENTE):
 		print 'obtendo a variavel latente =>>>> %d' % k
-		rmse_last=1000
 		for i_passos in range(NUM_PASSOS):
 			aux = 0
 			sq = 0
 			for user_item in w.keys():
-				for video_item in mediaUserDict[user_item].keys():
-					rating = mediaUserDict[user_item][video_item]
+				for video_item in q.keys():
+				#for video_item in mediaUserDict[user_item].keys():
+					rating = getRating(user_item, video_item)
+					if rating == 0:
+						continue
 					aux = aux + 1
+					predicted = 0.0
 					if i_passos > 0:
-						err = rating - predictRating(user_item,video_item, lista_variaveis_latente_w, lista_variaveis_latente_q)
+						predicted = predictRating(user_item, video_item, lista_variaveis_latente_w, lista_variaveis_latente_q)
+						err = rating - predicted
 					else:
-						err = rating - (w[user_item] * q[video_item])
-					sq = sq + (err**2)
+						predicted = w[user_item] * q[video_item]
+						err = rating - predicted
+					sq = sq + (err * err)
+					#######
+					#REVER#
+					#######
+					if err > 5.0:
+						print 'rating: %f >>> predicted: %f >>> erro: %f' % (rating, predicted, err)
 					lerr = lrate * err
 					tmp = lerr * w[user_item]
 					w[user_item] = w[user_item] + (lerr * q[video_item])
 					q[video_item] = q[video_item] + tmp
-			rmse = sqrt(sq/aux)
-			print 'passo %d - RMSE: %f = sqrt(%f/%d)' % (i_passos+1, rmse, sq, aux)
-			if rmse > rmse_last - MIN_IMPROVEMENT:
+			if sq > rse_max:
+				print 'RSE: %f' % sq
 				break
-			else:
-				rmse_last = rmse
+			#rmse = sqrt(sq/aux)
+			#print 'passo %d - RMSE: %f = sqrt(%f/%d)' % (i_passos+1, rmse, sq, aux)
+			#if rmse > rmse_last - MIN_IMPROVEMENT:
+			#	break
+			#else:
+			#	rmse_last = rmse
 			
 		lista_variaveis_latente_w.append(copy(w))
 		lista_variaveis_latente_q.append(copy(q))
@@ -123,7 +150,6 @@ def predictRating(user, midia, lista_variaveis_latente_w, lista_variaveis_latent
 	#print 'predicting rating...'
 	#inicio = time.time()
 	_rating = 1.0
-	#print '%d variaveis latentes' % len(lista_variaveis_latente_w)
 	for z in xrange(len(lista_variaveis_latente_w)):
 		_w = lista_variaveis_latente_w[z]
 		_q = lista_variaveis_latente_q[z]
@@ -131,8 +157,10 @@ def predictRating(user, midia, lista_variaveis_latente_w, lista_variaveis_latent
 		# http://www.timelydevelopment.com/demos/NetflixPrize.aspx
 		if _rating > 5:
 			_rating = 5
+			break
 		elif _rating < 1:
 			_rating = 1
+			break
 	#elapsed(inicio)
 	#print '*' * 60
 	return _rating
@@ -152,10 +180,13 @@ def testData(_w,_q):
 			if _w.has_key(user) and _q.has_key(media):
 				predicted = float(_w[user] * _q[media])
 				userRatingDict[user][media] = predicted
+			else:
+				print 'User: %s e Midia: %s nao encontrados na base' % (user, media)
+				userRatingDict[user][media] = 2.5
 
 		except Exception, why:
 			pass
-
+	elapsed(inicio)
 	
 # Returns elapsed time acording to the start time
 def elapsed(inicio):
@@ -217,7 +248,7 @@ result_log = open(RESULT_FILE, "w")
 result_log.write('LRATE\tCHUTE\tVARIAVEIS_LATENTES\tPASSOS\tRMSE\tELAPSED\n')
 result_log.flush()
 
-MAXIMO_LATENTES = 5
+MAXIMO_LATENTES = 10
 PASSOS_AUX = 1
 CHUTE_AUX = 0.1
 STEP = 0
