@@ -15,10 +15,8 @@ from math import *
 
 mediaUserDict = defaultdict(dict)
 userRatingDict = defaultdict(dict)
-user2count = defaultdict(dict)
 video2count = defaultdict(dict)
-user_index = {}
-video_index = {}
+
 ######################
 # Parametros do svd ##
 ######################
@@ -35,6 +33,7 @@ def parseDataSet():
 	fileIN = open(TEST_DATASET_FILE, "r")
 	line = fileIN.readline()
 	while line:
+		line = line.strip()
 		try:
 			#pdb.set_trace()
 			(user, media, rating) = line.split()
@@ -44,8 +43,7 @@ def parseDataSet():
 			
 			rating = int(rating)
 			mediaUserDict[user][media] = rating
-			user2count[user] = user2count.get(user, 0) + 1
-			video2count[media] = (video2count.get(media, 0)) + 1
+			video2count[media] = 1
 
 		except 	Exception, why:
 	        # count was not a number, so silently
@@ -53,7 +51,7 @@ def parseDataSet():
 			print "Passing...", why
 			pass
 		line = fileIN.readline()
-
+	fileIN.close()
 	elapsed(inicio)
 
 
@@ -62,17 +60,12 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 	# Cria vetores w e q com chute inicial#
 	#######################################
 	#Arquivos para gerarem graficos no excel com a distribuicao dos dados
-	user_file_distribution = open("user_distribution.xls", "w")
-	video_file_distribution = open("video_distribution.xls", "w")
 	i = 0
 	j = 0
 
 	print 'criando o vetor w com o chute inicial'
 
-	for user_item in user2count.keys():
-		linha = '%s\t%s\n' % (user_item, user2count[user_item])
-		user_index[user_item] = i
-		user_file_distribution.write(linha)
+	for user_item in mediaUserDict.keys():
 		w[user_item] = INITIAL_GUESS
 		i = i + 1
 
@@ -80,16 +73,10 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 	inicio = time.time()
 
 	for video_item in video2count.keys():
-		linha = '%s\t%s\n' % (video_item, video2count[video_item])
-		video_index[video_item] = j
-		video_file_distribution.write(linha)
 		q[video_item] = INITIAL_GUESS
 		j = j + 1
 	
 	elapsed(inicio)
-
-	user_file_distribution.close()
-	video_file_distribution.close()
 
 	print '*' * 60
 	print 'Total de usuarios: %s' % len(w)
