@@ -24,7 +24,7 @@ user2count = defaultdict(dict)
 TRAIN_DATASET_FILE = '../data/netflix/dataset_treino.txt'
 #TRAIN_DATASET_FILE = '../data/netflix/dataset.txt'
 TEST_DATASET_FILE = '../data/netflix/probe_parsed.txt'
-NETFLIX_DATASET_DIR='../data/netflix/download/training_set'
+NETFLIX_DATASET_DIR='../data/netflix/download/training_set_reduced'
 
 MIN_IMPROVEMENT = 0.0001
 
@@ -60,7 +60,7 @@ def parseDataSet():
 		except 	Exception, why:
 	        # count was not a number, so silently
 	        # ignore/discard this line
-			print "Passing...", why
+			print "Passing... -> %s" % why
 			pass
 		line = fileIN.readline()
 	fileIN.close()
@@ -115,33 +115,33 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 				i = 0
 				for line in fileinput.input(movie_filename):
 					i = i + 1
-					try:
-						if i == 1:
-							end=line.find(':')
-							video_item=line[0:end]
+					#try:
+					if i == 1:
+						end=line.find(':')
+						video_item=line[0:end]
+					else:
+						user_item,rating,date=line.split(',')
+						rating = int(rating)
+						predicted = 0.0
+						if i_passos > 0:
+							predicted = predictRating(user_item, video_item, lista_variaveis_latente_w, lista_variaveis_latente_q)
+							err = rating - predicted
 						else:
-							user_item,rating,date=line.split(',')
-							rating = int(rating)
-							predicted = 0.0
-							if i_passos > 0:
-								predicted = predictRating(user_item, video_item, lista_variaveis_latente_w, lista_variaveis_latente_q)
-								err = rating - predicted
-							else:
-								predicted = w[user_item] * q[video_item]
-								err = rating - predicted
-							sq = sq + (err * err)
-							#######
-							#REVER#
-							#######
-							if err > 5.0:
-								print 'rating: %f >>> predicted: %f >>> erro: %f' % (rating, predicted, err)
-							lerr = lrate * err
-							tmp = lerr * w[user_item]
-							w[user_item] = w[user_item] + (lerr * q[video_item])
-							q[video_item] = q[video_item] + tmp	
-					except Exception, why:
-						print 'Erro!! -> %s' % why
-						pass
+							predicted = w[video_item] * q[user_item]
+							err = rating - predicted
+						sq = sq + (err * err)
+						#######
+						#REVER#
+						#######
+						if err > 5.0:
+							print 'rating: %f >>> predicted: %f >>> erro: %f' % (rating, predicted, err)
+						lerr = lrate * err
+						tmp = lerr * w[video_item]
+						w[video_item] = w[video_item] + (lerr * q[user_item])
+						q[user_item] = q[user_item] + tmp	
+					#except Exception, why:
+					#	print 'Erro!! -> %s' % why
+					#	pass
 			########
 			if sq > rse_max:
 				print 'RSE: %f (breakin)' % sq
@@ -165,7 +165,7 @@ def predictRating(user, midia, lista_variaveis_latente_w, lista_variaveis_latent
 	for z in xrange(len(lista_variaveis_latente_w)):
 		_w = lista_variaveis_latente_w[z]
 		_q = lista_variaveis_latente_q[z]
-		_rating = _rating + (_w[user] * _q[midia])
+		_rating = _rating + (_w[midia] * _q[user])
 		# http://www.timelydevelopment.com/demos/NetflixPrize.aspx
 		if _rating > 5:
 			_rating = 5
@@ -184,20 +184,20 @@ def testData(_w,_q):
 	err = 0.0
     # le o dataset de testes
 	for line in fileinput.input(TEST_DATASET_FILE):
-		try:
-			line.strip()
-			user,media = line.split()
-			user = user.strip()
-			media = media.strip()
-			if _w.has_key(user) and _q.has_key(media):
-				predicted = float(_w[user] * _q[media])
-				userRatingDict[user][media] = predicted
-			else:
-				print 'User: %s e Midia: %s nao encontrados na base' % (user, media)
-				userRatingDict[user][media] = 2.5
+		#try:
+		line.strip()
+		user,media = line.split()
+		user = user.strip()
+		media = media.strip()
+		if _w.has_key(media) and _q.has_key(user):
+			predicted = float(_w[media] * _q[user])
+			userRatingDict[user][media] = predicted
+		else:
+			print 'User: %s e Midia: %s nao encontrados na base' % (user, media)
+			userRatingDict[user][media] = 2.5
 
-		except Exception, why:
-			pass
+		#except Exception, why:
+		#	pass
 	elapsed(inicio)
 	
 # Returns elapsed time acording to the start time
