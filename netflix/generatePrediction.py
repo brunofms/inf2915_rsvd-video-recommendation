@@ -144,7 +144,7 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 					#	print 'Erro!! -> %s' % why
 					#	pass
 			########
-			if sq > rse_max:
+			if sq > soma_rse_max:
 				print 'Soma RSE (%f) passou o limite: %f (breakin)' % (sq, soma_rse_max)
 				break
 			#rmse = sqrt(sq/aux)
