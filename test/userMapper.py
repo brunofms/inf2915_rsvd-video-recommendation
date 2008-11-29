@@ -92,10 +92,10 @@ def parseLog (input) :
 # start script
 for line in sys.stdin:
 	try:
-		print line
+		#print line
 		
 		result = parseLog(line)
 		print hashlib.md5(result['ip_address'] + result['user_agent']).hexdigest(), "\t", result['midia_id']
-	except:
-		print "Passing..."
+	except Exception,why:
+		print "Passing...",  why
 		pass
