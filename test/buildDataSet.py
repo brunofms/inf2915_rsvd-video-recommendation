@@ -170,6 +170,7 @@ for file_item in files_to_process:
 	        # ignore/discard this line
 			#print "Passing...", why
 			pass
+
 dataset_file.close()
 elapsed(inicio)
 print 'total de linhas processadas: %d' % count_lines
