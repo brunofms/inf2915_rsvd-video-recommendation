@@ -104,11 +104,14 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 	for k in range(NUM_VARIAVEL_LATENTE):
 		print 'obtendo a variavel latente =>>>> %d' % k
 		for i_passos in range(NUM_PASSOS):
-			aux = 0
+			#aux = 0
 			sq = 0
 			for user_item in w.keys():
+				aux = 0
 				for video_item in q.keys():
 				#for video_item in mediaUserDict[user_item].keys():
+					aux = aux + 1
+					#print 'processando video - %d' % aux
 					rating = getRating(user_item, video_item)
 					if rating == 0:
 						continue
