@@ -93,8 +93,9 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 	print '*' * 60
 	print 'Total de usuarios: %s' % len(q)
 	print 'Total de videos: %s' % len(w)
-	rse_max = 5.0 * 5.0 * len(w)
-	print 'RSEMAX: %f' % rse_max
+	#para limitar o RMSE em 3.0
+	soma_rse_max = 3.0 * len(w) * len(q)
+	print 'SOMA RSE MAX: %f' % soma_rse_max
 	print '*' * 60
 	
 	print 'comecando o treino...'
@@ -144,7 +145,7 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 					#	pass
 			########
 			if sq > rse_max:
-				print 'RSE: %f (breakin)' % sq
+				print 'Soma RSE (%f) passou o limite: %f (breakin)' % (sq, soma_rse_max)
 				break
 			#rmse = sqrt(sq/aux)
 			#print 'passo %d - RMSE: %f = sqrt(%f/%d)' % (i_passos+1, rmse, sq, aux)
