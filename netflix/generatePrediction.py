@@ -21,26 +21,27 @@ user2count = defaultdict(dict)
 ######################
 # Parametros do svd ##
 ######################
-TEST_DATASET_FILE = '../data/netflix/dataset_treino.txt'
+TRAIN_DATASET_FILE = '../data/netflix/dataset_treino.txt'
 #TEST_DATASET_FILE = '../data/netflix/dataset.txt'
-TRAIN_DATASET_FILE = '../data/netflix/probe_parsed.txt'
+TEST_DATASET_FILE = '../data/netflix/probe_parsed.txt'
+NETFLIX_DATASET_DIR='../netflix/download/training_set/'
 
 MIN_IMPROVEMENT = 0.0001
 
 #populate matrix
 def addMatrix(user, media, rating):
-	mediaUserDict[user][media] = rating
+	mediaUserDict[media][user] = rating
 
 #gets ratings from matrix
 def getRating(user, media):
-	rating = mediaUserDict[user].get(media, 0)
+	rating = mediaUserDict[media].get(user, 0)
 	return rating
 
 # Parses de dataset file
 def parseDataSet():
 	inicio = time.time()
-	print 'parsing dataset %s ...' % TEST_DATASET_FILE
-	fileIN = open(TEST_DATASET_FILE, "r")
+	print 'parsing dataset %s ...' % TRAIN_DATASET_FILE
+	fileIN = open(TRAIN_DATASET_FILE, "r")
 	line = fileIN.readline()
 	while line:
 		line = line.strip()
@@ -52,7 +53,7 @@ def parseDataSet():
 			rating = rating.strip()
 			
 			rating = int(rating)
-			addMatrix(user, media, rating)
+			#addMatrix(user, media, rating)
 			video2count[media] = 1
 			user2count[user] = 1
 
@@ -77,22 +78,22 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 	print 'criando o vetor w com o chute inicial'
 
 	for user_item in user2count.keys():
-		w[user_item] = INITIAL_GUESS
+		q[user_item] = INITIAL_GUESS
 		i = i + 1
 
 	print 'criando o vetor q com o chute inicial'
 	inicio = time.time()
 
 	for video_item in video2count.keys():
-		q[video_item] = INITIAL_GUESS
+		w[video_item] = INITIAL_GUESS
 		j = j + 1
 	
 	elapsed(inicio)
 
 	print '*' * 60
-	print 'Total de usuarios: %s' % len(w)
-	print 'Total de videos: %s' % len(q)
-	rse_max = 5.0 * 5.0 * len(q)
+	print 'Total de usuarios: %s' % len(q)
+	print 'Total de videos: %s' % len(w)
+	rse_max = 5.0 * 5.0 * len(w)
 	print 'RSEMAX: %f' % rse_max
 	print '*' * 60
 	
@@ -104,37 +105,46 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 	for k in range(NUM_VARIAVEL_LATENTE):
 		print 'obtendo a variavel latente =>>>> %d' % k
 		for i_passos in range(NUM_PASSOS):
-			#aux = 0
+			################################
+			# Read dir of movie.txt files ##
+			################################
 			sq = 0
-			for user_item in w.keys():
-				aux = 0
-				for video_item in q.keys():
-				#for video_item in mediaUserDict[user_item].keys():
-					aux = aux + 1
-					#print 'processando video - %d' % aux
-					rating = getRating(user_item, video_item)
-					if rating == 0:
-						continue
-					aux = aux + 1
-					predicted = 0.0
-					if i_passos > 0:
-						predicted = predictRating(user_item, video_item, lista_variaveis_latente_w, lista_variaveis_latente_q)
-						err = rating - predicted
-					else:
-						predicted = w[user_item] * q[video_item]
-						err = rating - predicted
-					sq = sq + (err * err)
-					#######
-					#REVER#
-					#######
-					if err > 5.0:
-						print 'rating: %f >>> predicted: %f >>> erro: %f' % (rating, predicted, err)
-					lerr = lrate * err
-					tmp = lerr * w[user_item]
-					w[user_item] = w[user_item] + (lerr * q[video_item])
-					q[video_item] = q[video_item] + tmp
+			for file_item in os.listdir(NETFLIX_DATASET_DIR):
+				movie_filename = '%s/%s' % (NETFLIX_DATASET_DIR, file_item)
+				print 'lendo %s' % movie_filename
+				i = 0
+				for line in fileinput.input(movie_filename):
+					i = i + 1
+					try:
+						if i == 1:
+							end=line.find(':')
+							video_item=line[0:end]
+						else:
+							user_item,rating,date=line.split(',')
+							rating = int(rating)
+							predicted = 0.0
+							if i_passos > 0:
+								predicted = predictRating(user_item, video_item, lista_variaveis_latente_w, lista_variaveis_latente_q)
+								err = rating - predicted
+							else:
+								predicted = w[user_item] * q[video_item]
+								err = rating - predicted
+							sq = sq + (err * err)
+							#######
+							#REVER#
+							#######
+							if err > 5.0:
+								print 'rating: %f >>> predicted: %f >>> erro: %f' % (rating, predicted, err)
+							lerr = lrate * err
+							tmp = lerr * w[user_item]
+							w[user_item] = w[user_item] + (lerr * q[video_item])
+							q[video_item] = q[video_item] + tmp	
+					except Exception, why:
+						print 'Erro!! -> %s' % why
+						pass
+			########
 			if sq > rse_max:
-				print 'RSE: %f' % sq
+				print 'RSE: %f (breakin)' % sq
 				break
 			#rmse = sqrt(sq/aux)
 			#print 'passo %d - RMSE: %f = sqrt(%f/%d)' % (i_passos+1, rmse, sq, aux)
@@ -142,7 +152,6 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 			#	break
 			#else:
 			#	rmse_last = rmse
-			
 		lista_variaveis_latente_w.append(copy(w))
 		lista_variaveis_latente_q.append(copy(q))
 		
@@ -174,7 +183,7 @@ def testData(_w,_q):
 	i=0
 	err = 0.0
     # le o dataset de testes
-	for line in fileinput.input(TRAIN_DATASET_FILE):
+	for line in fileinput.input(TEST_DATASET_FILE):
 		try:
 			line.strip()
 			user,media = line.split('|')
