@@ -15,10 +15,24 @@ for line in fileinput.input(NETFLIX_PROBE_FILE):
 			#print midia
 		else:
 			user = line.strip()
-			print '%s\t%s' % (user, midia)
+			#print '%s\t%s' % (user, midia)
 	except Exception, why:
 		print why
 		pass
 
-#for keys in videos.keys():
-#	print keys
+for keys in videos.keys():
+	j = len(keys)
+	if j == 1:
+		print '000000%s' % keys
+	elif j == 2:
+		print '00000%s' % keys
+	elif j == 3:
+		print '0000%s' % keys
+	elif j == 4:
+		print '000%s' % keys
+	elif j == 5:
+		print '00%s' % keys
+	elif j == 6:
+		print '0%s' % keys
+	else:
+		print '%s' % keys
