@@ -22,9 +22,9 @@ user2count = defaultdict(dict)
 # Parametros do svd ##
 ######################
 TRAIN_DATASET_FILE = '../data/netflix/dataset_treino.txt'
-#TEST_DATASET_FILE = '../data/netflix/dataset.txt'
+#TRAIN_DATASET_FILE = '../data/netflix/dataset.txt'
 TEST_DATASET_FILE = '../data/netflix/probe_parsed.txt'
-NETFLIX_DATASET_DIR='../netflix/download/training_set/'
+NETFLIX_DATASET_DIR='../data/netflix/download/training_set'
 
 MIN_IMPROVEMENT = 0.0001
 
@@ -186,7 +186,7 @@ def testData(_w,_q):
 	for line in fileinput.input(TEST_DATASET_FILE):
 		try:
 			line.strip()
-			user,media = line.split('|')
+			user,media = line.split()
 			user = user.strip()
 			media = media.strip()
 			if _w.has_key(user) and _q.has_key(media):
