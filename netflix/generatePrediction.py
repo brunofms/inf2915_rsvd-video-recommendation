@@ -21,10 +21,10 @@ user2count = defaultdict(dict)
 ######################
 # Parametros do svd ##
 ######################
-TRAIN_DATASET_FILE = '../data/netflix/dataset_treino.txt'
-#TRAIN_DATASET_FILE = '../data/netflix/dataset.txt'
+#TRAIN_DATASET_FILE = '../data/netflix/dataset_treino.txt'
+TRAIN_DATASET_FILE = '../data/netflix/dataset.txt'
 TEST_DATASET_FILE = '../data/netflix/probe_parsed.txt'
-NETFLIX_DATASET_DIR='../data/netflix/download/training_set_reduced'
+NETFLIX_DATASET_DIR='../data/netflix/download/training_set'
 
 MIN_IMPROVEMENT = 0.0001
 
@@ -105,6 +105,7 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 	
 	for k in range(NUM_VARIAVEL_LATENTE):
 		print 'obtendo a variavel latente =>>>> %d' % k
+		inicio = time.time()
 		for i_passos in range(NUM_PASSOS):
 			################################
 			# Read dir of movie.txt files ##
@@ -112,7 +113,7 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 			sq = 0
 			for file_item in os.listdir(NETFLIX_DATASET_DIR):
 				movie_filename = '%s/%s' % (NETFLIX_DATASET_DIR, file_item)
-				print 'lendo %s' % movie_filename
+				#print 'lendo %s' % movie_filename
 				i = 0
 				for line in fileinput.input(movie_filename):
 					i = i + 1
@@ -153,6 +154,7 @@ def trainData(w, q, lrate, INITIAL_GUESS, NUM_VARIAVEL_LATENTE, NUM_PASSOS, list
 			#	break
 			#else:
 			#	rmse_last = rmse
+			elapsed(inicio)
 		lista_variaveis_latente_w.append(copy(w))
 		lista_variaveis_latente_q.append(copy(q))
 		
@@ -192,10 +194,14 @@ def testData(_w,_q):
 		media = media.strip()
 		if _w.has_key(media) and _q.has_key(user):
 			predicted = float(_w[media] * _q[user])
-			userRatingDict[user][media] = predicted
+			if (predicted > 5.0):
+				predicted = 5.0
+			elif (predicted < 1.0):
+				predicted = 1.0
+			userRatingDict[media][user] = predicted
 		else:
 			print 'User: %s e Midia: %s nao encontrados na base' % (user, media)
-			userRatingDict[user][media] = 2.5
+			userRatingDict[media][user] = 2.5
 
 		#except Exception, why:
 		#	pass
@@ -237,11 +243,11 @@ def main2(chute=0.1, variaveis_latentes=10, passos=20, lrate=0.001):
 	print 'done'
 	
 	prediction_file = open("predicted_glb_ml.txt", "w")
-	for user_item in userRatingDict.keys():
-		prediction_file.write('%s:\n' % user_item)
-		for video_item in userRatingDict[user_item].keys():
-			print '%s\t%s\t%1.2f' % (user_item, video_item, userRatingDict[user_item][video_item])
-			prediction_file.write('%1.2f\n' % userRatingDict[user_item][video_item])
+	for video_item in sorted(userRatingDict.iterkeys()):
+		prediction_file.write('%s:\n' % video_item)
+		for user_item in userRatingDict[video_item].keys():
+			#print '%d\t%s\t%1.2f' % (video_item, user_item, userRatingDict[video_item][user_item])
+			prediction_file.write('%1.2f\n' % userRatingDict[video_item][user_item])
 			prediction_file.flush()
 	prediction_file.close()
 	fim = time.time()
@@ -261,7 +267,7 @@ result_log = open(RESULT_FILE, "w")
 result_log.write('LRATE\tCHUTE\tVARIAVEIS_LATENTES\tPASSOS\tRMSE\tELAPSED\n')
 result_log.flush()
 
-MAXIMO_LATENTES = 10
+MAXIMO_LATENTES = 1
 PASSOS_AUX = 1
 CHUTE_AUX = 0.1
 STEP = 0

@@ -1,6 +1,6 @@
 import sys,os,fileinput
 
-NETFLIX_DATASET_DIR='/Volumes/Untitled/machine_learning/netflix/download/training_set/'
+NETFLIX_DATASET_DIR='../netflix/download/training_set/'
 #file_netflix = open("../data/netflix/dataset.txt", "w")
 
 for file_item in os.listdir(NETFLIX_DATASET_DIR):

@@ -1,6 +1,6 @@
 import sys,os,fileinput
 
-NETFLIX_PROBE_FILE='../data/netflix/probe.txt'
+NETFLIX_PROBE_FILE='../data/netflix/qualifying.txt'
 #file_netflix = open("../data/netflix/dataset.txt", "w")
 videos = {}
 midia = 'a'
@@ -14,12 +14,14 @@ for line in fileinput.input(NETFLIX_PROBE_FILE):
 			videos[midia] = 1
 			#print midia
 		else:
-			user = line.strip()
-			#print '%s\t%s' % (user, midia)
+			(user, data) = line.split(',')
+			user = user.strip()
+			print '%s\t%s' % (user, midia)
 	except Exception, why:
 		print why
 		pass
 
+'''
 for keys in videos.keys():
 	j = len(keys)
 	if j == 1:
@@ -36,3 +38,4 @@ for keys in videos.keys():
 		print '0%s' % keys
 	else:
 		print '%s' % keys
+'''
